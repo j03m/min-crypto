@@ -1,0 +1,11 @@
+
+CREATE TABLE bars(
+symbol VARCHAR (50) NOT NULL,
+openTime TIMESTAMP NOT NULL,
+open VARCHAR (50) NOT NULL,
+high VARCHAR (50) NOT NULL,
+low VARCHAR (50) NOT NULL,
+close VARCHAR (50) NOT NULL,
+quoteAssetVolume VARCHAR (50) NOT NULL,
+baseAssetVolume VARCHAR (50) NOT NULL
+)

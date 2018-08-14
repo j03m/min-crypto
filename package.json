@@ -1,0 +1,18 @@
+{
+  "name": "min-crypto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bignumber.js": "^7.2.1",
+    "binance-api-node": "^0.8.2",
+    "binance-node-api": "^0.2.0",
+    "mobx": "^5.0.3",
+    "technicalindicators": "^1.1.11"
+  }
+}
