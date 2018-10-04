@@ -10,9 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "bignumber.js": "^7.2.1",
-    "binance-api-node": "^0.8.2",
+    "binance-api-node": "^0.8.5",
     "binance-node-api": "^0.2.0",
-    "mobx": "^5.0.3",
-    "technicalindicators": "^1.1.11"
+    "mobx": "^5.5.0",
+    "technicalindicators": "^1.1.13"
   }
 }
