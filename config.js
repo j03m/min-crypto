@@ -9,4 +9,4 @@ module.exports = {
   "stopPercent": 0.05,
   "tether": "USDT",
   "barProperty": "close"
-}
+};

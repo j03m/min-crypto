@@ -23,6 +23,10 @@ async function go(){
         side: 'BUY',
         quantity: "0.25",
         price: "0.004901900",
+    });
+
+    client.ws.candles((candle) => {
+        console.log("bar:", candle);
     })
 }
 

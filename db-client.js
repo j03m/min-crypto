@@ -5,17 +5,17 @@ class dbClient {
     constructor(options){
         this._start = options.start;
         this._end = options.end;
-        this._dbClient = new Client({
+        this._postGres = new Client({
             host: 'localhost',
             database: 'bot',
             user: 'postgres'
         });
-        this._ws = new dbSocket(options, dbClient);
+        this._ws = new dbSocket(options, this._postGres);
         this._mockPortfolio = new MockPortfolio(this._accountInfoSync());
     }
 
     async initDb(){
-        await this._dbClient.connect();
+        await this._postGres.connect();
     }
 
     order(trade){
@@ -58,7 +58,7 @@ class dbClient {
         //look at start and end times, convert to seconds
         //select from bars where between start, end
         const select = `SELECT * FROM bars where openTime >= to_timestamp($1) and openTime <= to_timestamp($2) order by openTime asc`;
-        const result = await this._dbClient.query({
+        const result = await this._postGres.query({
             text: select,
             values: [request.start/1000, request.end/1000]
         });
@@ -78,30 +78,42 @@ class dbSocket{
         this._dbClient = dbClient;
     }
     candles(cb){
+
+        if (this._interval){
+            clearInterval(this._interval);
+        }
+
         //should tick 1 bar from db
         this._candlesCb = cb;
         this._interval = setInterval(async () => {
             const candle = await this.getNextCandle();
+            if (candle === undefined){
+                console.log("No ticks");
+                clearInterval(this._interval)
+            }
             this._candlesCb(candle);
         }, 1000);
     }
-    getNextCandle(){
 
-    }
-    user(cb){
-        //portfolio updates
-        this._userCb = cb;
-    }
-
-    async getAndSendCandle(){
+    async getNextCandle(){
         //read next candle from the db
-        const select = "select * from bars where openTime > to_timestamp($1) order by openTime asc limit 1"
+        const select = "select * from bars where openTime < to_timestamp($1) order by openTime asc limit 1"
         const result = await this._dbClient.query({
             text: select,
             values: [this._start/1000]
         });
 
-        this._start = result.rows[0].openTime;
+        if (result.rows.length !== 0){
+            this._start = result.rows[0].opentime * 1000;
+            return result.rows[0];
+        } else {
+            return undefined;
+        }
+
+    }
+    user(cb){
+        //portfolio updates
+        this._userCb = cb;
     }
 
     sendCandle(candle){
