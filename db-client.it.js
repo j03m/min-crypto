@@ -1,14 +1,11 @@
 const Client = require("./db-client");
-const client = new Client({
-    start: new Date("September 1st 2018").getTime(),
-    end: Date.now()
-});
+const client = new Client();
 
 async function go(){
     await client.initDb();
     const candles =  await client.candles({
-        start: new Date("September 18 2018").getTime(),
-        end: new Date("September 19 2018").getTime()
+        startTime: new Date("September 18 2018").getTime(),
+        endTime: new Date("September 19 2018").getTime()
     });
     console.log("candles:", candles);
 

@@ -225,12 +225,12 @@ class Bot {
     //j03m you need to change this here
     //you can't use date.now. You need to receive a
     //trade start time, and then go back PERIOD bars from there
-    async fetchBars(start, end) {
+    async fetchBars(testStart) {
         //back fill things
 
-        //
-        const startTime = typeof start !== 'number' ? Date.now() - (60000 * 15 * PERIOD) : start;
-        const endTime = typeof end !== 'number' ? Date.now() : end;
+        const endTime = typeof testStart !== 'number' ? Date.now() : testStart;
+        const startTime = new Date(endTime).getTime() - (60000 * 15 * PERIOD);
+
         const response = await bars.fetchCandles({
             fetchAction: async (request) => {
                 return await this._client.candles(request);
@@ -240,6 +240,7 @@ class Bot {
             startTime: startTime,
             endTime: endTime
         });
+
         this._data = this.pluck(response, BAR_PROPERTY).map((value) => { return BN(value)});
         this.generateBands();
         return Promise.resolve(this._data);

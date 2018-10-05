@@ -35,13 +35,13 @@ class MockPortfolio extends Portfolio {
     executeBuy(input){
         const order = this.bigNumberOrder(input);
         //buy ASSET with CURRENCY - ETHBTC means we buy BTC with ETH
-        this._currency = this._currency.free.minus(order.quantity.multipliedBy(order.price));
-        this._asset = this._asset.free.plus(order.quantity.multipliedBy(order.price));
+        this._currency.free = this._currency.free.minus(order.quantity.multipliedBy(order.price));
+        this._asset.free = this._asset.free.plus(order.quantity.multipliedBy(order.price));
     }
 
     executeSell(order){
-        this._currency = this._currency.plus(order.quantity.multipliedBy(order.price))
-        this._asset = this._asset.minus(order.quantity.multipliedBy(order.price));
+        this._currency.free = this._currency.free.plus(order.quantity.multipliedBy(order.price))
+        this._asset.free = this._asset.free.minus(order.quantity.multipliedBy(order.price));
     }
 }
 

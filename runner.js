@@ -1,4 +1,4 @@
-async function go(client, start, end){
+async function go(client, start){
     try{
         // const initActions = [
         //     state.fetchBars(),
@@ -11,7 +11,7 @@ async function go(client, start, end){
             await client.initDb();
         }
         const bot = require("./bot")(client);
-        await bot.fetchBars(start, end);
+        await bot.fetchBars(start);
         await bot.fetchPortfolio();
         await bot.cancelOpenOrders();
         bot.initComplete = true;

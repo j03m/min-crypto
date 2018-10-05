@@ -3,8 +3,6 @@ const MockPortfolio = require("./mock-portfolio");
 const config = require("./config.js");
 class dbClient {
     constructor(options){
-        this._start = options.start;
-        this._end = options.end;
         this._postGres = new Client({
             host: 'localhost',
             database: 'bot',
@@ -18,12 +16,13 @@ class dbClient {
         await this._postGres.connect();
     }
 
-    order(trade){
+    async order(trade){
         //order should cause an execution report
         //followed by a portfolio update via the websocket
         this._mockPortfolio.mockExecute(trade);
         return this._ws.sendExecution(this._mockPortfolio.asset,
             this._mockPortfolio.currency);
+        return Promise.resolve();
 
     }
     openOrders(){
@@ -60,7 +59,7 @@ class dbClient {
         const select = `SELECT * FROM bars where openTime >= to_timestamp($1) and openTime <= to_timestamp($2) order by openTime asc`;
         const result = await this._postGres.query({
             text: select,
-            values: [request.start/1000, request.end/1000]
+            values: [request.startTime/1000, request.endTime/1000]
         });
         return result.rows;
     }
@@ -73,7 +72,8 @@ class dbClient {
 //todo: you need to download currency and asset tether data
 class dbSocket{
     constructor(options, dbClient){
-        this._start = options.end;
+        this._tickStart = options.testStart;
+        this._testEnd = options.testEnd;
         this._orders = 0;
         this._dbClient = dbClient;
     }
@@ -97,17 +97,17 @@ class dbSocket{
 
     async getNextCandle(){
         //read next candle from the db
-        const select = "select * from bars where openTime < to_timestamp($1) order by openTime asc limit 1"
+        const select = "select * from bars where openTime >= to_timestamp($1) and openTime <= to_timestamp($2) order by openTime asc limit 1"
         const result = await this._dbClient.query({
             text: select,
-            values: [this._start/1000]
+            values: [this._tickStart/1000, this._testEnd/1000]
         });
 
         if (result.rows.length !== 0){
-            this._start = result.rows[0].opentime * 1000;
+            this._tickStart = result.rows[0].opentime * 1000;
             return result.rows[0];
         } else {
-            return undefined;
+            throw new Error("TEST DONE"); //todo: maybe be a little less ham fisted?
         }
 
     }

@@ -1,11 +1,16 @@
 const Client = require("./db-client");
-const client = new Client({
-    start: new Date("September 1st 2018").getTime(),
-    end: Date.now()
-});
+
+const testStart = new Date("July 1 2018");
+const testEnd = testStart.addDays(30);
+const backTestParams = {
+    testStart: testStart,
+    testEnd: testEnd
+}
+
+const client = new Client(backTestParams);
 
 const runner = require("./runner");
-runner(client).then(() => {
+runner(client, backTestParams.testStart).then(() => {
     console.log("should never happen");
 }).catch((e)=>{
     throw e;
