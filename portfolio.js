@@ -1,6 +1,6 @@
 const BigNumber = require('bignumber.js');
 const _ = require("lodash");
-
+const config = require("./config");
 /**
  * When candle comes in, we're going to base our trades off of the close, which is a single
  * number denoting how much of the QUOTE (or asset) you can buy with 1 of the BASE where
@@ -35,8 +35,8 @@ class Portfolio {
     }
 
     static portfolioFactory(balances, currency, asset){
-        const currencyBalance = Portfolio.findBalance(balances, CURRENCY);
-        const assetBalance = Portfolio.findBalance(balances, ASSET);
+        const currencyBalance = Portfolio.findBalance(balances, config.currency);
+        const assetBalance = Portfolio.findBalance(balances, config.asset);
         return new Portfolio(currencyBalance, assetBalance);
     }
 

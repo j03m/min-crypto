@@ -77,7 +77,7 @@ class dbSocket{
         this._orders = 0;
         this._dbClient = dbClient;
     }
-    candles(cb){
+    candles(symbol, tick, cb){
 
         if (this._interval){
             clearInterval(this._interval);
@@ -86,7 +86,7 @@ class dbSocket{
         //should tick 1 bar from db
         this._candlesCb = cb;
         this._interval = setInterval(async () => {
-            const candle = await this.getNextCandle();
+            const candle = await this.getNextCandle(symbol);
             if (candle === undefined){
                 console.log("No ticks");
                 clearInterval(this._interval)

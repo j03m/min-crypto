@@ -1,10 +1,11 @@
 const Client = require("./db-client");
-
-const testStart = new Date("July 1 2018");
-const testEnd = testStart.addDays(30);
+const moment = require("moment")
+const testStart = moment(new Date(2018, 6, 11));
+const testEnd = testStart.clone();
+testEnd.add(30, "d");
 const backTestParams = {
-    testStart: testStart,
-    testEnd: testEnd
+    testStart: testStart.valueOf(),
+    testEnd: testEnd.valueOf()
 }
 
 const client = new Client(backTestParams);

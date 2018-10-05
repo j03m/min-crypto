@@ -13,6 +13,9 @@ const CURRENCY = "ETH";
 const ASSET = "BTC";
 const SYMBOL = `${CURRENCY}${ASSET}`;
 const BAR_LEN = 15;
+const yargs = require("yargs").argv;
+
+const symbol = yargs.symbol === undefined ? SYMBOL : yargs.symbol;
 
 
 process.on('unhandledRejection', up => { throw up });
@@ -92,7 +95,7 @@ async function doFetch(dbClient, binanceClient){
 
             return []; //so we don't build a buffer
         },
-        symbol: SYMBOL,
+        symbol: symbol,
         interval: BAR_LEN + "m",
         startTime: startTime,
         endTime: endTime
@@ -102,7 +105,7 @@ async function doFetch(dbClient, binanceClient){
 
 function convertObject(bar){
     return [
-        SYMBOL,
+        symbol,
         bar.openTime / 1000, //postgres timestamp is seconds
         bar.open,
         bar.high,
