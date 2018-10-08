@@ -76,35 +76,35 @@ class dbSocket{
         this._testEnd = options.testEnd;
         this._orders = 0;
         this._dbClient = dbClient;
+        this._callBacks = new Map();
     }
     candles(symbol, tick, cb){
 
-        if (this._interval){
-            clearInterval(this._interval);
+        this._callBacks.set(symbol, cb);
+        if (this._interval === undefined) {
+            this._interval = setInterval(async () => {
+                this.getCandles()
+            }, 1000);
         }
-
-        //should tick 1 bar from db
-        this._candlesCb = cb;
-        this._interval = setInterval(async () => {
-            const candle = await this.getNextCandle(symbol);
-            if (candle === undefined){
-                console.log("No ticks");
-                clearInterval(this._interval)
-            }
-            this._candlesCb(candle);
-        }, 1000);
     }
 
-    async getNextCandle(){
+    //j03m must keep all callbacks
+    getCandles(){
+        this._callBacks.forEach()
+    }
+
+    //j03m this needs to accept symbol
+    async getNextCandle(symbol){
         //read next candle from the db
-        const select = "select * from bars where openTime >= to_timestamp($1) and openTime <= to_timestamp($2) order by openTime asc limit 1"
+        const select = "select * from bars where openTime > to_timestamp($1) and openTime <= to_timestamp($2) and symbol = $3 order by openTime asc limit 1"
         const result = await this._dbClient.query({
             text: select,
-            values: [this._tickStart/1000, this._testEnd/1000]
+            values: [this._tickStart/1000, this._testEnd/1000, symbol]
         });
 
         if (result.rows.length !== 0){
-            this._tickStart = result.rows[0].opentime * 1000;
+            this._tickStart = result.rows[0].opentime.getTime();
+            console.log(this._tickStart, " is ", new Date(this._tickStart))
             return result.rows[0];
         } else {
             throw new Error("TEST DONE"); //todo: maybe be a little less ham fisted?
@@ -116,10 +116,6 @@ class dbSocket{
         this._userCb = cb;
     }
 
-    sendCandle(candle){
-        this._candlesCb(candle);
-
-    }
 
     sendUserUpdate(update){
         this._userCb(update);
