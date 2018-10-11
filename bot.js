@@ -260,13 +260,10 @@ class Bot {
     }
 
 
-    //j03m you need to diff update time based on last candle
-    //for some reason, when you set lastUpdateTime in your fetch, you are getting an older
-    //time then the first websocket tick. This is busted
     shouldMakeNewCandle(candle){
         //is the time of this candle a significant time from our last
         if (candle.opentime.getTime() - this._lastUpdateTime >= 1000 * 60 * BAR_LEN){
-            this._lastUpdateTime = Date.now();
+            this._lastUpdateTime = candle.opentime.getTime();
             return true;
         }
         return false;

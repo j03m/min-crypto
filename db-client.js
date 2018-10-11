@@ -98,7 +98,6 @@ class dbSocket{
         }
     }
 
-    //j03m this needs to accept symbol
     async getNextCandle(symbol){
         //read next candle from the db
         const select = "select * from bars where openTime > to_timestamp($1) and openTime <= to_timestamp($2) and symbol = $3 order by openTime asc limit 1"
