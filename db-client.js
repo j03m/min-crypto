@@ -83,14 +83,19 @@ class dbSocket{
         this._callBacks.set(symbol, cb);
         if (this._interval === undefined) {
             this._interval = setInterval(async () => {
-                this.getCandles()
+                await this.sendCandles();
             }, 1000);
         }
     }
 
-    //j03m must keep all callbacks
-    getCandles(){
-        this._callBacks.forEach()
+    async sendCandles(){
+        const ary = Array.from(this._callBacks.entries());
+        for(let i = 0; i < ary.length; i++){
+            const symbol = ary[i][0];
+            const cb = ary[i][1];
+            const candle = await this.getNextCandle(symbol);
+            cb(candle);
+        }
     }
 
     //j03m this needs to accept symbol

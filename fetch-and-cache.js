@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const bars = require("./bars");
 const Binance = require("binance-api-node").default;
 const creds = require("./creds");
