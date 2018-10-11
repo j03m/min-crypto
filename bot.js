@@ -54,7 +54,6 @@ class Bot {
         this._currentAdvice = null;
         this._portfolio = new Portfolio({ free: 0, locked: 0}, { free: 0, locked: 0});
         this._lastTradeTime = undefined;
-        this._lastUpdateTime = Date.now();
         this._pendingTrade = undefined;
         this._originalPortfolio == new Portfolio({ free: 0, locked: 0}, { free: 0, locked: 0});
     }
@@ -238,17 +237,20 @@ class Bot {
             symbol: SYMBOL,
             interval: BAR_LEN + "m",
             startTime: startTime,
-            endTime: endTime
+            endTime: endTime,
+            maxBars: PERIOD
         });
 
+        this._lastUpdateTime = response[0].opentime.getTime();
         this._data = this.pluck(response, BAR_PROPERTY).map((value) => { return BN(value)});
+
         this.generateBands();
         return Promise.resolve(this._data);
     }
 
     //this would be interesting to do with a reaction
     updateDataSet(candle){
-        if (this.shouldMakeNewCandle()){
+        if (this.shouldMakeNewCandle(candle)){
             this._data.shift();
             this._data.push(BN(candle[BAR_PROPERTY]));
             this.generateBands();
@@ -257,8 +259,13 @@ class Bot {
         return false;
     }
 
-    shouldMakeNewCandle(){
-        if (Date.now() - this._lastUpdateTime >= 1000 * 60 * BAR_LEN){
+
+    //j03m you need to diff update time based on last candle
+    //for some reason, when you set lastUpdateTime in your fetch, you are getting an older
+    //time then the first websocket tick. This is busted
+    shouldMakeNewCandle(candle){
+        //is the time of this candle a significant time from our last
+        if (candle.opentime.getTime() - this._lastUpdateTime >= 1000 * 60 * BAR_LEN){
             this._lastUpdateTime = Date.now();
             return true;
         }

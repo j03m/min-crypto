@@ -12,6 +12,7 @@ async function fetchCandles(options){
     let startTime = options.startTime;
     let endTime = options.endTime;
     let handler = options.handler;
+    let maxBars = options.maxBars;
 
     assert(typeof startTime === "number" && startTime < Date.now(), "startTime must be a number less then the current time");
     assert(typeof endTime === "number", "endTime must be a number");
@@ -20,7 +21,7 @@ async function fetchCandles(options){
     //understand the interval
     let intervalObj = expandInterval(interval);
 
-    let timeWindows = calculateCallTimeWindows(startTime, endTime, intervalObj);
+    let timeWindows = calculateCallTimeWindows(startTime, endTime, intervalObj, maxBars);
 
     return doFetchInSteps(fetchAction, symbol, interval, timeWindows, handler);
 }

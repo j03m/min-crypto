@@ -109,7 +109,6 @@ class dbSocket{
 
         if (result.rows.length !== 0){
             this._tickStart = result.rows[0].opentime.getTime();
-            console.log(this._tickStart, " is ", new Date(this._tickStart))
             return result.rows[0];
         } else {
             throw new Error("TEST DONE"); //todo: maybe be a little less ham fisted?
