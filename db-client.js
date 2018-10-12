@@ -20,9 +20,10 @@ class dbClient {
         //order should cause an execution report
         //followed by a portfolio update via the websocket
         this._mockPortfolio.mockExecute(trade);
+
+        //j03m when we do this, porfolio becomes all NaN
         return this._ws.sendExecution(this._mockPortfolio.asset,
             this._mockPortfolio.currency);
-        return Promise.resolve();
 
     }
     openOrders(){
@@ -82,12 +83,20 @@ class dbSocket{
 
         this._callBacks.set(symbol, cb);
         if (this._interval === undefined) {
-            this._interval = setInterval(async () => {
-                await this.sendCandles();
-            }, 1000);
+                async function handler () {
+                    clearInterval(this._interval);
+                    await this.sendCandles();
+                  this._interval = setInterval(handler.bind(this), config.tick);
+                }
+            this._interval = setInterval(handler.bind(this), config.tick);
         }
     }
-
+    //j03m - Im not sure if this is trading
+    //look at clui to see if we can create a more usable dash
+    //graphics for values
+    //number of trades
+    //current advice?
+    //current candle?
     async sendCandles(){
         const ary = Array.from(this._callBacks.entries());
         for(let i = 0; i < ary.length; i++){
@@ -135,8 +144,8 @@ class dbSocket{
             eventType: 'account',
             eventTime: Date.now(),
             balances: {
-                [config.asset]: {available: asset.toString(), locked: '0.00000000'},
-                [config.currency]: {available: currency.toString(), locked: '0.00000000'}
+                [config.asset]: {available: asset.free.toString(), locked: '0.00000000'},
+                [config.currency]: {available: currency.free.toString(), locked: '0.00000000'}
             }
         })
     }

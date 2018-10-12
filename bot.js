@@ -56,6 +56,7 @@ class Bot {
         this._lastTradeTime = undefined;
         this._pendingTrade = undefined;
         this._originalPortfolio == new Portfolio({ free: 0, locked: 0}, { free: 0, locked: 0});
+        this._firstPortfolioUpdate = false;
     }
 
     get initComplete(){
@@ -202,7 +203,11 @@ class Bot {
     //array
     initPortfolio(balances){
         this._portfolio = Portfolio.portfolioFactory(balances, CURRENCY, ASSET);
-        this._originalPortfolio = Portfolio.portfolioFactory(balances, CURRENCY, ASSET);
+        if (!this._firstPortfolioUpdate){
+          this._originalPortfolio = Portfolio.portfolioFactory(balances, CURRENCY, ASSET);
+          this._firstPortfolioUpdate = true;
+        }
+
     }
 
     //object
@@ -294,14 +299,9 @@ class Bot {
 
             //j03m - make this sane :/
             this._ws.user((msg) => {
-                if(msg.eventType === "executionReport"){
-                    console.log("Trade executed: ", msg.orderId);
-                }
-
                 if (msg.eventType === "account"){
                     //update portfolio?
                     if (msg.balances){
-                        console.log("Account update. Balances reset. Trading open");
                         this.convertAndUpdatePortfolio(msg.balances);
                         this._pendingTrade = undefined;
                     }else {
@@ -313,83 +313,38 @@ class Bot {
     }
 
     renderPortfolio(price) {
-        console.log("Current Porfolio Value:");
-        this._portfolio.render(this._lastAssetTether, this._lastCurrencyTether);
+        //this._portfolio.render(this._lastAssetTether, this._lastCurrencyTether);
+        //this._originalPortfolio.render(this._lastAssetTether, this._lastCurrencyTether);
 
-        console.log("Original Porfolio Value:");
-        this._originalPortfolio.render(this._lastAssetTether, this._lastCurrencyTether);
+
+
+      /**
+       * render(tetherAsset, tetherCurrency){
+        const currencyTotal = this._currency.free.plus(this._currency.locked);
+        const assetTotal = this._asset.free.plus(this._asset.locked);
+
+        const currencyValue = currencyTotal.multipliedBy(tetherCurrency);
+        const assetValue = assetTotal.multipliedBy(tetherAsset);
+        const totalValue = assetValue.plus(currencyValue);
+        console.log(`
+            Portfolio:
+                currency free: ${this._currency.free.toNumber()}, locked: ${this._currency.locked.toNumber()}
+                asset free: ${this._asset.free.toNumber()}, locked: ${this._asset.locked.toNumber()}
+                Total value in ASSET: ${assetValue.toNumber()}
+                Total value in CURRENCY: ${currencyValue.toNumber()}
+                Total value: ${totalValue}
+        `);
+    }
+       */
     }
 }
 
-decorate(Bot, {
-    _data: observable,
-    _trades: observable,
-    _lastValue: observable,
-    _pendingTrade: observable,
-    _currentAdvice: observable,
-    _lastResponse: observable,
-    _currentBands: observable
-});
+
 
 
 
 function go(client){
     const bot = new Bot(client);
-
-    const outputCandle = reaction(
-        () => bot._lastValue,
-        () => {
-            console.log(`   data change:, ${bot._lastValue.toNumber()},
-                            @${new Date().toTimeString()}
-                            `);
-
-            bot.renderPortfolio();
-        }
-    );
-
-    const outputBands = reaction(
-        () => bot._guide,
-        () => {
-            console.log("Bands:", `
-                      top: ${bot._guide.top.toNumber()},
-                      high: ${bot._guide.high.toNumber()},
-                      mid: ${bot._guide.mid.toNumber()},
-                      low: ${bot._guide.low.toNumber()},
-                      bottom: ${bot._guide.bottom.toNumber()}
-            `);
-        }
-    );
-
-    const newAdvice = reaction(
-        () => bot._currentAdvice,
-        () => {
-            console.log("current advice:", JSON.stringify(bot._currentAdvice));
-        }
-    );
-
-    const willTrade = reaction(
-        () => bot._pendingTrade,
-        () => {
-            if (bot._pendingTrade !== undefined){
-                console.log("Will trade:", `
-            {
-                symbol: ${bot._pendingTrade.symbol},
-                side: ${bot._pendingTrade.side},
-                quantity: ${bot._pendingTrade.quantity},
-                price: ${bot._pendingTrade.price},
-            }
-            `);
-            }
-        }
-    );
-
-    const responses = reaction(
-        () => bot._lastResponse,
-        () => {
-            console.log("Order response:", bot.orderId);
-        }
-    );
-
     return bot;
 }
 

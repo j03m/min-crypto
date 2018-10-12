@@ -12,6 +12,7 @@
     "bignumber.js": "^7.2.1",
     "binance-api-node": "^0.8.5",
     "binance-node-api": "^0.2.0",
+    "clui": "^0.3.6",
     "mobx": "^5.5.0",
     "moment": "^2.22.2",
     "pg": "^7.5.0",

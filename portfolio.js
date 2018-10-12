@@ -35,8 +35,8 @@ class Portfolio {
     }
 
     static portfolioFactory(balances, currency, asset){
-        const currencyBalance = Portfolio.findBalance(balances, config.currency);
-        const assetBalance = Portfolio.findBalance(balances, config.asset);
+        const currencyBalance = Portfolio.findBalance(balances, currency === undefined ? config.currency : currency);
+        const assetBalance = Portfolio.findBalance(balances, asset === undefined ? config.asset : asset);
         return new Portfolio(currencyBalance, assetBalance);
     }
 
@@ -61,9 +61,8 @@ class Portfolio {
         return price.multipliedBy(shares);
     }
 
-    canBuy(shares){
+    canBuy(shares, price){
         //enough base free?
-
         const amount = price.multipliedBy(shares);
         return this._asset.free.minus(amount).isGreaterThanOrEqualTo(0);
     }
@@ -71,23 +70,6 @@ class Portfolio {
     canSell(shares){
         const amount = shares;
         return this._currency.free.minus(amount).isGreaterThanOrEqualTo(0);
-    }
-
-    render(tetherAsset, tetherCurrency){
-        const currencyTotal = this._currency.free.plus(this._currency.locked);
-        const assetTotal = this._asset.free.plus(this._asset.locked);
-
-        const currencyValue = currencyTotal.multipliedBy(tetherCurrency);
-        const assetValue = assetTotal.multipliedBy(tetherAsset);
-        const totalValue = assetValue.plus(currencyValue);
-        console.log(`
-            Portfolio: 
-                currency free: ${this._currency.free.toNumber()}, locked: ${this._currency.locked.toNumber()}
-                asset free: ${this._asset.free.toNumber()}, locked: ${this._asset.locked.toNumber()}
-                Total value in ASSET: ${assetValue.toNumber()}
-                Total value in CURRENCY: ${currencyValue.toNumber()}
-                Total value: ${totalValue}
-        `);
     }
 
     get asset () {

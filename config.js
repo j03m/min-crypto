@@ -8,5 +8,6 @@ module.exports = {
   "orderSize": 0.025,
   "stopPercent": 0.05,
   "tether": "USDT",
-  "barProperty": "close"
+  "barProperty": "close",
+  "tick": 0
 };
