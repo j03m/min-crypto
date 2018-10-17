@@ -1,5 +1,5 @@
-const buySeverity = "midline";
-const sellSeverity = "midline";
+const {buySeverity, sellSeverity} = require("./config");
+
 
 class Advice{
     static hasBuySignal(last, spec) {

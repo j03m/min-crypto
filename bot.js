@@ -6,16 +6,9 @@ const BandGenerator = require('technicalindicators').BollingerBands;
 const Advice = require("./advice");
 const Portfolio = require("./portfolio");
 const config = require("./config");
+const rendr = require("./rendr");
+const moment = require("moment");
 
-//next up: Recevie the key copy paste at start
-//run on heroku - with pulse wake up
-//email trade log
-
-
-//add a stop loss for current trade. If active trade is %5 down exit.
-//capture the current trade
-//look at the last buy we purchase at
-//if down N% sell it
 
 //TODO switch current and asset. You BUY the ASSET ETH with the CURRENCY BTC
 
@@ -57,6 +50,7 @@ class Bot {
         this._pendingTrade = undefined;
         this._originalPortfolio == new Portfolio({ free: 0, locked: 0}, { free: 0, locked: 0});
         this._firstPortfolioUpdate = false;
+        this._tradeCount = 0;
     }
 
     get initComplete(){
@@ -123,7 +117,7 @@ class Bot {
         });
         this._lastResponse = response;
         this._lastTrade = trade;
-        this._lastTradeTime = Date.now();
+        this._lastTradeTime = this._lastCandle.opentime;
         return response;
 
     }
@@ -168,11 +162,13 @@ class Bot {
     }
 
     shouldTrade() {
-        return this._lastTradeTime === undefined || Date.now() - this._lastTradeTime > WAIT_TO_TRADE;
+        return this._lastTradeTime === undefined || this._lastCandle.opentime - this._lastTradeTime > WAIT_TO_TRADE;
     }
 
     async trade () {
-        if (!this.shouldTrade()) { return; }
+        if (!this.shouldTrade()) {
+            return;
+        }
         // else if(this.shouldStopLoss()){
         //     await this.handleStopLoss();
         // }
@@ -182,6 +178,7 @@ class Bot {
             if (advice.buy &&
                 this._portfolio.canBuy(ORDER_SIZE, this._lastValue) &&
                 this._pendingTrade === undefined){
+                this._tradeCount++;
                 const trade = this.getBuyOrder();
                 return await this.sendOrder(trade);
             }
@@ -189,6 +186,7 @@ class Bot {
             if (advice.sell &&
                 this._portfolio.canSell(ORDER_SIZE, this._lastValue) &&
                 this._pendingTrade === undefined){
+                this._tradeCount++;
                 const trade = this.getSellOrder();
                 return await this.sendOrder(trade);
             }
@@ -281,19 +279,27 @@ class Bot {
                 if (this.initComplete){
                     const action = this.updateDataSet(candle);
                     this._lastValue = BN(candle[BAR_PROPERTY]);
+                    this._lastCandle = candle;
                     if (action){
                         await this.trade();
                     }
+                    this._render();
                 }
             });
 
             //get USDT for ASSET
             this._ws.candles(ASSET_TETHER, TICK_LEN + "m", (candle) => {
                 this._lastAssetTether = BN(candle[BAR_PROPERTY]);
+                if (this._lastCurrencyTether !== undefined){
+                    this._render();
+                }
             });
 
             this._ws.candles(CURRENCY_TETHER, TICK_LEN + "m", (candle) => {
                 this._lastCurrencyTether = BN(candle[BAR_PROPERTY]);
+                if(this._lastAssetTether){
+                    this._render();
+                }
             });
 
 
@@ -312,30 +318,34 @@ class Bot {
         });
     }
 
-    renderPortfolio(price) {
-        //this._portfolio.render(this._lastAssetTether, this._lastCurrencyTether);
-        //this._originalPortfolio.render(this._lastAssetTether, this._lastCurrencyTether);
+    _render(){
+        if (this._firstRender === undefined &&
+            this._lastAssetTether !== undefined &&
+            this._lastCurrencyTether !== undefined){
+            //capture the total value of the original portfolio once
+            this._originalValue = this._originalPortfolio.value(this._lastAssetTether, this._lastCurrencyTether);
+            this._firstRender = true;
+        }
+
+        if (this._firstRender){
+          const tradedPortValue = this._portfolio.value(this._lastAssetTether, this._lastCurrencyTether);
+          const currentHodlValue = this._originalPortfolio.value(this._lastAssetTether, this._lastCurrencyTether);
+
+          const tradedDiff = tradedPortValue.minus(this._originalValue);
+          const heldDiff = currentHodlValue.minus(this._originalValue);
+
+          const tradedPercentChange = tradedDiff.dividedBy(this._originalValue).times(100);
+          const heldPercentChange = heldDiff.dividedBy(this._originalValue).times(100);
 
 
-
-      /**
-       * render(tetherAsset, tetherCurrency){
-        const currencyTotal = this._currency.free.plus(this._currency.locked);
-        const assetTotal = this._asset.free.plus(this._asset.locked);
-
-        const currencyValue = currencyTotal.multipliedBy(tetherCurrency);
-        const assetValue = assetTotal.multipliedBy(tetherAsset);
-        const totalValue = assetValue.plus(currencyValue);
-        console.log(`
-            Portfolio:
-                currency free: ${this._currency.free.toNumber()}, locked: ${this._currency.locked.toNumber()}
-                asset free: ${this._asset.free.toNumber()}, locked: ${this._asset.locked.toNumber()}
-                Total value in ASSET: ${assetValue.toNumber()}
-                Total value in CURRENCY: ${currencyValue.toNumber()}
-                Total value: ${totalValue}
-        `);
-    }
-       */
+          //traded port value vs original value
+          rendr.getReady();
+          rendr.set(`current: ${tradedPortValue.toNumber()}  change: ${tradedPercentChange}`);
+          rendr.set(`hodl: ${currentHodlValue.toNumber()} change: ${heldPercentChange}`);
+          rendr.set(`original: ${this._originalValue.toNumber()}`);
+          rendr.set(`current bar: ${moment(this._lastCandle.opentime)} total trades: ${this._tradeCount}`);
+          rendr.set(`last trade: ${moment(this._lastTradeTime)} total trades: ${this._tradeCount}`);
+        }
     }
 }
 
