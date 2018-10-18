@@ -1,0 +1,24 @@
+
+bot changes:
+
+* When running, the bot will accept a flag --history
+* While in history mode it will keep the last N json blobs representation of all events. Events are:
+    * candle
+    * trade
+    * trade confirm
+    * value change
+    * indicator
+
+(this might be a good time to consider state as separate and change the the bot to pure functional)
+
+* --log will also log the history to console or file (or s3?)
+
+* bot will also open a webserver on some port the webservers only target will take the history collection
+and run it through plotly to create:
+
+* Candle, bollingers, trade events (buy/sell red/green)
+
+* The three portfolio values, original, hodl, bot over time
+
+
+
