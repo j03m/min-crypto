@@ -18,7 +18,6 @@ const TETHER = config.tether;
 const SYMBOL = `${CURRENCY}${ASSET}`;
 const CURRENCY_TETHER = `${CURRENCY}${TETHER}`;
 const ASSET_TETHER = `${ASSET}${TETHER}`;
-const {decorate, observable, computed, action, reaction} = mobx;
 const ORDER_SIZE = BN(config.orderSize);
 const BAR_PROPERTY = config.barProperty;
 const STOP_PERCENT = BN(config.stopPercent); //5%
@@ -51,6 +50,7 @@ class Bot {
         this._originalPortfolio == new Portfolio({ free: 0, locked: 0}, { free: 0, locked: 0});
         this._firstPortfolioUpdate = false;
         this._tradeCount = 0;
+        this._guide = [];
     }
 
     get initComplete(){
@@ -71,7 +71,10 @@ class Bot {
         });
         const stdDev2 = bands.makeBand(BandGenerator, numbers, PERIOD, 2);
         const stdDev1 = bands.makeBand(BandGenerator, numbers, PERIOD, 1);
-        this._guide = bands.makeGuide(stdDev1, stdDev2);
+        this._guide.push(bands.makeGuide(stdDev1, stdDev2));
+        if (this._guide.length > PERIOD){
+            this._guide.shift();
+        }
         return this._guide;
     }
 
@@ -79,13 +82,19 @@ class Bot {
         return this._currentAdvice;
     }
 
+    //todo: j03m move width internal to buy/sell signal
+    //load advice class from config, keep interface hasbuy/sell
     generateAdvice(){
         const bands = this._guide;
         const buy = Advice.hasBuySignal(this._lastValue, bands);
         const sell = Advice.hasSellSignal(this._lastValue, bands);
+        const width = Advice.hasBandWidth(bands);
+        if (width){
+            console.log("woo");
+        }
         this._currentAdvice = {
-            buy,
-            sell
+            buy: buy && width,
+            sell: sell && width
         };
     }
 

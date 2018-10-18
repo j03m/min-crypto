@@ -119,6 +119,10 @@ class dbSocket{
             this._tickStart = result.rows[0].opentime.getTime();
             return result.rows[0];
         } else {
+            console.log("last query:", {
+              text: select,
+              values: [this._tickStart/1000, this._testEnd/1000, symbol]
+            })
             throw new Error("TEST DONE"); //todo: maybe be a little less ham fisted?
         }
 

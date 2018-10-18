@@ -1,4 +1,5 @@
 const {buySeverity, sellSeverity} = require("./config");
+const BN = require("bignumber.js");
 
 
 class Advice{
@@ -89,6 +90,21 @@ class Advice{
      */
     static hasConservativeSellSignal(last, spec){
         return last.isGreaterThanOrEqualTo(spec.top);
+    }
+
+    static hasBandWidth(bands){
+        const currentBand = bands[bands.length - 1];
+        const currentWidth = Advice.calculateWidth(currentBand);
+        const sumWidth = bands.reduce((acc, band) => {
+             return acc.plus(Advice.calculateWidth(band));
+        }, BN(0));
+        const avgWidth = sumWidth.dividedBy(bands.length);
+        console.log(`\n\n avg: ${avgWidth.toNumber()} current: ${currentWidth.toNumber()}\n\n`)
+        return currentWidth.isGreaterThanOrEqualTo(avgWidth);
+    }
+
+    static calculateWidth({top, bottom, mid}){
+        return top.minus(bottom).dividedBy(mid).times(100);
     }
 }
 
