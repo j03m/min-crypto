@@ -1,0 +1,61 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+<!-- Plotly chart will be drawn inside this div -->
+<div id="plotly-div"></div>
+<script>
+  var trace1 = {
+
+    x: %DATES%,
+
+    close: %CLOSE%,
+
+    decreasing: {line: {color: '#7F7F7F'}},
+
+    high: %HIGH%,
+
+    increasing: {line: {color: '#17BECF'}},
+
+    line: {color: 'rgba(31,119,180,1)'},
+
+    low: %LOW%,
+
+    open: %OPEN%,
+
+    type: 'candlestick',
+    xaxis: 'x',
+    yaxis: 'y'
+  };
+
+  var data = [trace1];
+
+  var layout = {
+    dragmode: 'zoom',
+    margin: {
+      r: 10,
+      t: 25,
+      b: 40,
+      l: 60
+    },
+    showlegend: false,
+    xaxis: {
+      autorange: true,
+      domain: [0, 1],
+      range: ['%START%', '%END'],
+      rangeslider: {range: ['%START%', '%END%']},
+      title: 'Date',
+      type: 'date'
+    },
+    yaxis: {
+      autorange: true,
+      domain: [0, 1],
+      range: [%MIN%, %MAX%],
+      type: 'linear'
+    }
+  };
+
+  Plotly.plot('plotly-div', data, layout);
+</script>
+</body>
+</html>

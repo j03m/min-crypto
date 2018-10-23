@@ -57,10 +57,10 @@ class dbClient {
     async candles(request){
         //look at start and end times, convert to seconds
         //select from bars where between start, end
-        const select = `SELECT * FROM bars where openTime >= to_timestamp($1) and openTime <= to_timestamp($2) order by openTime asc`;
+        const select = `SELECT * FROM bars where openTime >= to_timestamp($1) and openTime <= to_timestamp($2) and symbol = $3 order by openTime asc`;
         const result = await this._postGres.query({
             text: select,
-            values: [request.startTime/1000, request.endTime/1000]
+            values: [request.startTime/1000, request.endTime/1000, request.symbol]
         });
         return result.rows;
     }
@@ -99,12 +99,15 @@ class dbSocket{
     //current candle?
     async sendCandles(){
         const ary = Array.from(this._callBacks.entries());
+        let candle;
         for(let i = 0; i < ary.length; i++){
             const symbol = ary[i][0];
             const cb = ary[i][1];
-            const candle = await this.getNextCandle(symbol);
+            candle = await this.getNextCandle(symbol);
             cb(candle);
         }
+        //use the LAST candle to update time
+        this._tickStart = candle.opentime.getTime();
     }
 
     async getNextCandle(symbol){
@@ -116,7 +119,6 @@ class dbSocket{
         });
 
         if (result.rows.length !== 0){
-            this._tickStart = result.rows[0].opentime.getTime();
             return result.rows[0];
         } else {
             console.log("last query:", {

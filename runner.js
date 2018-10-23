@@ -1,3 +1,5 @@
+
+
 async function go(client, start){
     try{
         // const initActions = [
@@ -15,6 +17,7 @@ async function go(client, start){
         await bot.fetchPortfolio();
         await bot.cancelOpenOrders();
         bot.initComplete = true;
+
         await bot.listen();
     }catch(e){
         throw e;

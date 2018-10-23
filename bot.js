@@ -27,13 +27,6 @@ const TICK_LEN = config.tickLen;
 const BAR_LEN = config.barLen;
 const WAIT_TO_TRADE = config.waitToTrade;
 
-//j03m:
-//you need to back test. pull 500 15 min bars, pick a spot at random
-//feed the 15 min bars through the fake trader
-//add a mock binance api that pulls candles and ticks from a file
-//get crazy use postgres
-//make the mock binance also handle trades
-//renderer
 
 class Bot {
     constructor(client) {
@@ -51,6 +44,35 @@ class Bot {
         this._firstPortfolioUpdate = false;
         this._tradeCount = 0;
         this._guide = [];
+        this._allCandles = [];
+    }
+
+
+    get history(){
+        return {
+            candles: this.candles,
+            bands: this.bands, //todo: refactor to be generic to the guide used.
+            trades: this.trades,
+        }
+    }
+
+    //history
+    get candles(){
+        return this._allCandles;
+    }
+
+    //history
+    get bands() {
+        return this._guide;
+    }
+
+    //history
+    get trades () {
+        return this._trades;
+    }
+
+    get portfolioValues () {
+        //return all port values
     }
 
     get initComplete(){
@@ -72,9 +94,6 @@ class Bot {
         const stdDev2 = bands.makeBand(BandGenerator, numbers, PERIOD, 2);
         const stdDev1 = bands.makeBand(BandGenerator, numbers, PERIOD, 1);
         this._guide.push(bands.makeGuide(stdDev1, stdDev2));
-        if (this._guide.length > PERIOD){
-            this._guide.shift();
-        }
         return this._guide;
     }
 
@@ -85,18 +104,24 @@ class Bot {
     //todo: j03m move width internal to buy/sell signal
     //load advice class from config, keep interface hasbuy/sell
     generateAdvice(){
-        const bands = this._guide;
+        const bands = this._guide[this._guide.length - 1];
         const buy = Advice.hasBuySignal(this._lastValue, bands);
         const sell = Advice.hasSellSignal(this._lastValue, bands);
-        const width = Advice.hasBandWidth(bands);
+        const width = Advice.hasBandWidth(bands, this._guide);
         if (width){
-            console.log("woo");
+            //console.log("woo");
         }
         this._currentAdvice = {
             buy: buy && width,
             sell: sell && width
         };
     }
+
+    //j03m - band width is terrible !
+
+    // record tests against scenarios manually
+
+    // finish render + history
 
     shouldStopLoss(){
         if (this._lastTrade !== undefined &&
@@ -109,15 +134,10 @@ class Bot {
         return false;
     }
 
-    async handleStopLoss(){
-        if (this._portfolio.canSell(ORDER_SIZE, this._lastValue) &&
-            this._pendingTrade === undefined) {
-            const trade = this.getSellOrder();
-            return await this.sendOrder(trade);
-        }
-    }
 
     async sendOrder(trade){
+    //j03m store here - render orders
+
         let response;
         response = await this._client.order(trade);
         this._trades.push({
@@ -253,6 +273,7 @@ class Bot {
             maxBars: PERIOD
         });
 
+        this._allCandles = response.slice();
         this._lastUpdateTime = response[0].opentime.getTime();
         this._data = this.pluck(response, BAR_PROPERTY).map((value) => { return BN(value)});
 
@@ -265,6 +286,7 @@ class Bot {
         if (this.shouldMakeNewCandle(candle)){
             this._data.shift();
             this._data.push(BN(candle[BAR_PROPERTY]));
+            this._allCandles.push(candle);
             this.generateBands();
             return true;
         }
@@ -283,6 +305,7 @@ class Bot {
 
     listen() {
         //listen, get a tick
+        rendr.web(this); //kick off the web server
         return new Promise((f, r) => {
             this._ws.candles(SYMBOL, TICK_LEN + 'm', async candle => {
                 if (this.initComplete){
@@ -312,7 +335,6 @@ class Bot {
             });
 
 
-            //j03m - make this sane :/
             this._ws.user((msg) => {
                 if (msg.eventType === "account"){
                     //update portfolio?

@@ -92,14 +92,13 @@ class Advice{
         return last.isGreaterThanOrEqualTo(spec.top);
     }
 
-    static hasBandWidth(bands){
-        const currentBand = bands[bands.length - 1];
+    static hasBandWidth(currentBand, bands){
         const currentWidth = Advice.calculateWidth(currentBand);
         const sumWidth = bands.reduce((acc, band) => {
              return acc.plus(Advice.calculateWidth(band));
         }, BN(0));
         const avgWidth = sumWidth.dividedBy(bands.length);
-        console.log(`\n\n avg: ${avgWidth.toNumber()} current: ${currentWidth.toNumber()}\n\n`)
+        console.log(`\n\n remove me avg: ${avgWidth.toNumber()} current: ${currentWidth.toNumber()}\n\n`)
         return currentWidth.isGreaterThanOrEqualTo(avgWidth);
     }
 
