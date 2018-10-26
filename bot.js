@@ -33,7 +33,7 @@ class Bot {
         this._data = [];
         this._client = client;
         this._ws = client.ws;
-        this._trades = [];
+        this._trades = {};
         this._initComplete = false;
         this._lastValue = -1;
         this._currentAdvice = null;
@@ -93,16 +93,16 @@ class Bot {
         });
         const stdDev2 = bands.makeBand(BandGenerator, numbers, PERIOD, 2);
         const stdDev1 = bands.makeBand(BandGenerator, numbers, PERIOD, 1);
-        this._guide.push(bands.makeGuide(stdDev1, stdDev2));
-        return this._guide;
+        const guide = bands.makeGuide(stdDev1, stdDev2);
+        this._guide.push(guide);
+        return guide;
     }
 
     get advice() {
         return this._currentAdvice;
     }
 
-    //todo: j03m move width internal to buy/sell signal
-    //load advice class from config, keep interface hasbuy/sell
+
     generateAdvice(){
         const bands = this._guide[this._guide.length - 1];
         const buy = Advice.hasBuySignal(this._lastValue, bands);
@@ -136,14 +136,10 @@ class Bot {
 
 
     async sendOrder(trade){
-    //j03m store here - render orders
-
+        //j03m store here - render orders
         let response;
         response = await this._client.order(trade);
-        this._trades.push({
-            order: trade,
-            response: response
-        });
+        this._trades[trade.when.getTime()] = trade;
         this._lastResponse = response;
         this._lastTrade = trade;
         this._lastTradeTime = this._lastCandle.opentime;
@@ -170,6 +166,7 @@ class Bot {
             side: 'BUY',
             quantity: ORDER_SIZE.toString(),
             price: this._lastValue.toString(),
+            when: this._lastCandle.opentime
         };
         return this._pendingTrade;
     }
@@ -185,7 +182,8 @@ class Bot {
             symbol: SYMBOL,
             side: 'SELL',
             quantity: ORDER_SIZE,
-            price: this._lastValue,
+            price: this._lastValue.toString(),
+            when: this._lastCandle.opentime
         };
         return this._pendingTrade;
     }
@@ -277,7 +275,11 @@ class Bot {
         this._lastUpdateTime = response[0].opentime.getTime();
         this._data = this.pluck(response, BAR_PROPERTY).map((value) => { return BN(value)});
 
-        this.generateBands();
+        const guide = this.generateBands();
+        //pad out the guides to they are the same length as initial candles
+        this._guide = this._data.map(() =>{
+            return guide;
+        });
         return Promise.resolve(this._data);
     }
 

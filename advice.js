@@ -98,7 +98,6 @@ class Advice{
              return acc.plus(Advice.calculateWidth(band));
         }, BN(0));
         const avgWidth = sumWidth.dividedBy(bands.length);
-        console.log(`\n\n remove me avg: ${avgWidth.toNumber()} current: ${currentWidth.toNumber()}\n\n`)
         return currentWidth.isGreaterThanOrEqualTo(avgWidth);
     }
 

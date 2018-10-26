@@ -5,9 +5,11 @@
 <!-- Plotly chart will be drawn inside this div -->
 <div id="plotly-div"></div>
 <script>
-  var trace1 = {
 
-    x: %DATES%,
+  const dates = %DATES%;
+  var candles = {
+
+    x: dates,
 
     close: %CLOSE%,
 
@@ -28,7 +30,70 @@
     yaxis: 'y'
   };
 
-  var data = [trace1];
+  const highest = {
+    x: dates,
+    y: %TOP%,
+    type: "scatter",
+    line: {color: '#4286f4'}
+  };
+
+  const high = {
+      x: dates,
+      y: %HIGHBAND%,
+      type: "scatter",
+    line: {color: '#6af441'}
+  };
+
+  const mid = {
+    x: dates,
+    y: %MID%,
+    type: "scatter",
+    line: {color: '#f44341'}
+  };
+
+  const low = {
+      x: dates,
+      y: %LOWBAND%,
+    type: "scatter",
+    line: {color: '#6af441'}
+  };
+
+  const bottom = {
+      x: dates,
+      y: %BOTTOM%,
+    type: "scatter",
+    line: {color: '#4286f4'}
+  };
+
+
+  const buys = {
+    //j03m finish me
+    y: %BUYS%,
+    x: %BUYDATES%,
+    mode: "markers",
+    type: 'scatter',
+    marker: {
+      size: 10,
+      color: "#6df441"
+    }
+  };
+
+  const sells = {
+      //j03m finish me
+    y: %SELLS%,
+    x: %SELLDATES%,
+    mode: "markers",
+    type: 'scatter',
+    marker: {
+      size: 10,
+      color: "#f44141"
+    }
+  };
+
+
+  var data = [candles, highest, high, mid, low, bottom, buys, sells];
+  //var data = [candles, highest, mid, bottom];
+
 
   var layout = {
     dragmode: 'zoom',
@@ -42,7 +107,7 @@
     xaxis: {
       autorange: true,
       domain: [0, 1],
-      range: ['%START%', '%END'],
+      range: ['%START%', '%END%'],
       rangeslider: {range: ['%START%', '%END%']},
       title: 'Date',
       type: 'date'

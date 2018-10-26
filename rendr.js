@@ -44,19 +44,63 @@ function web(bot) {
 }
 
 function processTemplate(template, history) {
-  //todo collapse all these loops into one destructure call
-  template = template.replace(/\%DATES\%/g, extractDateArray(history.candles));
+
+  const dates = extractDateArray(history.candles);
+
+  template = template.replace(/\%DATES\%/g, dates);
   template = template.replace(/\%OPEN\%/g, extractOpen(history.candles));
   template = template.replace(/\%HIGH\%/g, extractHigh(history.candles));
   template = template.replace(/\%LOW\%/g, extractLow(history.candles));
-  template = template.replace(/\%CLOSE\%/g, extractClose(history.candles));
+
+  const close = extractClose(history.candles);
+
+  template = template.replace(/\%CLOSE\%/g, close);
   template = template.replace(/\%START\%/g, extractStart(history.candles));
   template = template.replace(/\%END\%/g, extractEnd(history.candles));
+
+  template = template.replace(/\%TOP\%/g, extractBand(history.bands, "top"));
+  template = template.replace(/\%HIGHBAND\%/g, extractBand(history.bands, "high"));
+  template = template.replace(/\%MID\%/g, extractBand(history.bands, "mid"));
+  template = template.replace(/\%LOWBAND\%/g, extractBand(history.bands, "low"));
+  template = template.replace(/\%BOTTOM\%/g, extractBand(history.bands, "bottom"));
+
+  const buys = extractTrades(history.candles, history.trades, "BUY", dates);
+
+
+  template = template.replace(/\%BUYS\%/g, buys);
+  template = template.replace(/\%SELLS\%/g, extractTrades(history.candles, history.trades, "SELL", dates));
+
+  template = template.replace(/\%BUYDATES\%/g, dates);
+  template = template.replace(/\%SELLDATES\%/g, dates);
 
   const {min, max} = extractMinMax(history.candles);
   template = template.replace(/\%MIN\%/g, min);
   template = template.replace(/\%MAX\%/g, max);
   return template;
+}
+
+
+//todo: TRADES ARE OFF BY around 5 candles
+//todo: DATES has 148 on parse, BUYS has 143 - WHY BRO?
+function extractTrades(candles, trades, key, dates){
+  return JSON.stringify(candles.reduce((acc, candle, index)=>{
+    const trade = trades[candle.opentime.getTime()];
+    if (trade){
+      if (trade.side === key){
+        console.log(dates[index]);
+        acc.push(BN(trade.price).toNumber());
+      }
+    }else {
+      acc.push(undefined);
+    }
+    return acc;
+  }, []));
+}
+
+function extractBand(bands, key){
+  return JSON.stringify(bands.map((band) => {
+    return band[key].toNumber();
+  }));
 }
 
 function extractMinMax(candles){
