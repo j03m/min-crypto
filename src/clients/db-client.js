@@ -1,7 +1,7 @@
 const {Client} = require("pg");
 const MockPortfolio = require("./mock-portfolio");
 const config = require("./config.js");
-class dbClient {
+class DBClient {
     constructor(options){
         this._postGres = new Client({
             host: 'localhost',
@@ -12,7 +12,7 @@ class dbClient {
         this._mockPortfolio = new MockPortfolio(this._accountInfoSync());
     }
 
-    async initDb(){
+    async init(){
         await this._postGres.connect();
     }
 
@@ -22,7 +22,7 @@ class dbClient {
         this._mockPortfolio.mockExecute(trade);
 
         //j03m when we do this, porfolio becomes all NaN
-        return this._ws.sendExecution(this._mockPortfolio.asset,
+        return this._ws._sendExecution(this._mockPortfolio.asset,
             this._mockPortfolio.currency);
 
     }
@@ -70,7 +70,7 @@ class dbClient {
     }
 }
 
-//todo: you need to download currency and asset tether data
+//todo: we need a base clase :/
 class dbSocket{
     constructor(options, dbClient){
         this._tickStart = options.testStart;
@@ -85,32 +85,27 @@ class dbSocket{
         if (this._interval === undefined) {
                 async function handler () {
                     clearInterval(this._interval);
-                    await this.sendCandles();
+                    await this._sendCandles();
                   this._interval = setInterval(handler.bind(this), config.tick);
                 }
             this._interval = setInterval(handler.bind(this), config.tick);
         }
     }
-    //j03m - Im not sure if this is trading
-    //look at clui to see if we can create a more usable dash
-    //graphics for values
-    //number of trades
-    //current advice?
-    //current candle?
-    async sendCandles(){
+
+    async _sendCandles(){
         const ary = Array.from(this._callBacks.entries());
         let candle;
         for(let i = 0; i < ary.length; i++){
             const symbol = ary[i][0];
             const cb = ary[i][1];
-            candle = await this.getNextCandle(symbol);
+            candle = await this._getNextCandle(symbol);
             cb(candle);
         }
         //use the LAST candle to update time
         this._tickStart = candle.opentime.getTime();
     }
 
-    async getNextCandle(symbol){
+    async _getNextCandle(symbol){
         //read next candle from the db
         const select = "select * from bars where openTime > to_timestamp($1) and openTime <= to_timestamp($2) and symbol = $3 order by openTime asc limit 1"
         const result = await this._dbClient.query({
@@ -135,18 +130,18 @@ class dbSocket{
     }
 
 
-    sendUserUpdate(update){
+    _sendUserUpdate(update){
         this._userCb(update);
     }
 
-    sendExecution(asset, currency){
+    _sendExecution(asset, currency){
         this._orders++;
-        this.sendUserUpdate({
+        this._sendUserUpdate({
             eventType: "executionReport",
             orderId: this._orders
         });
 
-        this.sendUserUpdate({
+        this._sendUserUpdate({
             eventType: 'account',
             eventTime: Date.now(),
             balances: {
@@ -157,4 +152,4 @@ class dbSocket{
     }
 }
 
-module.exports = dbClient;
+module.exports = DBClient;

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "inlineSources": true,
+    "outDir": "./dist",
+    "allowJs": true,
+    "target": "ES2018",
+    "lib": ["es7"]
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

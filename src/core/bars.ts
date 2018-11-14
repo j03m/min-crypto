@@ -1,3 +1,6 @@
+import * as CandleRequest from "../types/candles-request";
+import {CandlesRequest} from "../types/candles-request";
+import {FetchHandler} from "../types/candles-request";
 const assert = require("assert");
 const debug = require("debug")("fetch");
 const {
@@ -5,7 +8,12 @@ const {
 } = require("./util");
 const defaultMaxBars = 500;
 
-async function fetchCandles(options){
+interface TimeWindow {
+    start:number,
+    end:number
+}
+
+async function fetchCandles(options: CandleRequest.FetchOptions){
     let fetchAction = options.fetchAction;
     let symbol = options.symbol;
     let interval = options.interval;
@@ -26,7 +34,11 @@ async function fetchCandles(options){
     return doFetchInSteps(fetchAction, symbol, interval, timeWindows, handler);
 }
 
-async function doFetchInSteps(fetchAction, symbol, interval, timeWindows, handler){
+async function doFetchInSteps(fetchAction:CandleRequest.FetchHandler,
+                              symbol:string,
+                              interval:string,
+                              timeWindows:Array<TimeWindow>,
+                              handler:any){
     let results = [];
     for(let startEndPair of timeWindows){
         debug("fetching...");
@@ -53,7 +65,10 @@ async function doFetchInSteps(fetchAction, symbol, interval, timeWindows, handle
  * @param intervalObj
  * @param maxBars
  */
-function calculateCallTimeWindows(startTime, endTime, intervalObj, maxBars){
+function calculateCallTimeWindows(startTime:number,
+                                  endTime:number,
+                                  intervalObj:any,
+                                  maxBars:number): Array<TimeWindow>{
     //next we want to determine how many calls we need to make to fetch all intervals between start and end time.
     let windowStart = startTime;
     let windowEnd = 0;
@@ -71,43 +86,6 @@ function calculateCallTimeWindows(startTime, endTime, intervalObj, maxBars){
 }
 
 
-/**
- * Calculates the number of calls required to fetch the range of data based on
- * an interval and max number of bars
- * @param startTime
- * @param endTime
- * @param intervalObj
- * @param inMaxBars
- * @returns {number}
- */
-function calculateCallsToFetchRange(startTime, endTime, intervalObj, inMaxBars){
-
-    //how many bars are in the requested time frame
-    let numberOfBars = calculateBarsInRange(startTime, endTime, intervalObj.value, intervalObj.unit);
-
-    let maxBars = inMaxBars || defaultMaxBars;
-
-    //how many calls is that
-    let calls = numberOfBars / maxBars;
-
-    return Math.ceil(calls);
-}
-
-/**
- * Calculates the number of bars in a time range based on the interval and unit supplied
- * @param startTime
- * @param endTime
- * @param interval
- * @param unit
- * @returns {number}
- */
-function calculateBarsInRange(startTime, endTime, interval, unit){
-    let diff = endTime - startTime;
-    let unitAsMilliseconds = unitMilliseconds[unit];
-    let intervalMilliseconds = unitAsMilliseconds * interval;
-    let bars = Math.floor(diff/ intervalMilliseconds);
-    return bars;
-}
 
 
 module.exports = {

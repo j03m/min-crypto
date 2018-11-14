@@ -2,15 +2,9 @@
 
 async function go(client, start){
     try{
-        // const initActions = [
-        //     state.fetchBars(),
-        //     //state.fetchPortfolio()
-        // ];
 
-        //await Promise.all(initActions);
-        //j03m turn this into an init function
-        if (typeof client.initDb === "function"){
-            await client.initDb();
+        if (typeof client.init === "function"){
+            await client.init();
         }
         const bot = require("./bot")(client);
         await bot.fetchBars(start);

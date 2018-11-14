@@ -22,9 +22,9 @@ async function go(){
         price: "0.004901900",
     });
 
-    client.ws.candles((candle) => {
+    client.ws.candles("ETHBTC", "15m", (candle) => {
         console.log("bar:", candle);
-    })
+    });
 }
 
 

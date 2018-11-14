@@ -1,29 +1,30 @@
 <head>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="plotly-min.js"></script>
 </head>
 <body>
 <!-- Plotly chart will be drawn inside this div -->
-<div id="plotly-div"></div>
+<div id="plotly-bars"></div>
+<div id="plotly-values"></div>
 <script>
 
-  const dates = %DATES%;
+  const dates = "%DATES%";
   var candles = {
 
     x: dates,
 
-    close: %CLOSE%,
+    close: "%CLOSE%",
 
     decreasing: {line: {color: '#7F7F7F'}},
 
-    high: %HIGH%,
+    high: "%HIGH%",
 
     increasing: {line: {color: '#17BECF'}},
 
     line: {color: 'rgba(31,119,180,1)'},
 
-    low: %LOW%,
+    low: "%LOW%",
 
-    open: %OPEN%,
+    open: "%OPEN%",
 
     type: 'candlestick',
     xaxis: 'x',
@@ -32,35 +33,35 @@
 
   const highest = {
     x: dates,
-    y: %TOP%,
+    y: "%TOP%",
     type: "scatter",
     line: {color: '#4286f4'}
   };
 
   const high = {
       x: dates,
-      y: %HIGHBAND%,
+      y: "%HIGHBAND%",
       type: "scatter",
     line: {color: '#6af441'}
   };
 
   const mid = {
     x: dates,
-    y: %MID%,
+    y: "%MID%",
     type: "scatter",
     line: {color: '#f44341'}
   };
 
   const low = {
       x: dates,
-      y: %LOWBAND%,
+      y: "%LOWBAND%",
     type: "scatter",
     line: {color: '#6af441'}
   };
 
   const bottom = {
       x: dates,
-      y: %BOTTOM%,
+      y: "%BOTTOM%",
     type: "scatter",
     line: {color: '#4286f4'}
   };
@@ -68,8 +69,8 @@
 
   const buys = {
     //j03m finish me
-    y: %BUYS%,
-    x: %BUYDATES%,
+    y: "%BUYS%",
+    x: "%BUYDATES%",
     mode: "markers",
     type: 'scatter',
     marker: {
@@ -80,8 +81,8 @@
 
   const sells = {
       //j03m finish me
-    y: %SELLS%,
-    x: %SELLDATES%,
+    y: "%SELLS%",
+    x: "%SELLDATES%",
     mode: "markers",
     type: 'scatter',
     marker: {
@@ -107,20 +108,68 @@
     xaxis: {
       autorange: true,
       domain: [0, 1],
-      range: ['%START%', '%END%'],
-      rangeslider: {range: ['%START%', '%END%']},
+      range: ['"%START%"', '"%END%"'],
+      rangeslider: {range: ['"%START%"', '"%END%"']},
       title: 'Date',
       type: 'date'
     },
     yaxis: {
       autorange: true,
       domain: [0, 1],
-      range: [%MIN%, %MAX%],
       type: 'linear'
     }
   };
 
-  Plotly.plot('plotly-div', data, layout);
+  var layoutValue = {
+    dragmode: 'zoom',
+    margin: {
+      r: 10,
+      t: 25,
+      b: 40,
+      l: 60
+    },
+    showlegend: false,
+    xaxis: {
+      autorange: true,
+      domain: [0, 1],
+      range: ['"%START%"', '"%END%"'],
+      rangeslider: {range: ['"%START%"', '"%END%"']},
+      title: 'Date',
+      type: 'date'
+    },
+    yaxis: {
+      autorange: true,
+      domain: [0, 1],
+      type: 'linear'
+    }
+  };
+
+
+  const hold = {
+    x: "%VALUEDATES%",
+    y: "%HODL%",
+    type: "scatter",
+    line: {color: '#4286f4'}
+  };
+
+  const trade = {
+    x: "%VALUEDATES%",
+    y: "%TRDED%",
+    type: "scatter",
+    line: {color: '#129634'}
+  };
+
+  const orig = {
+    x: "%VALUEDATES%",
+    y: "%ORIG%",
+    type: "scatter",
+    line: {color: '#F29634'}
+  };
+
+  const values = [hold, trade, orig];
+
+  Plotly.plot('plotly-bars', data, layout);
+  Plotly.plot('plotly-values', values, layoutValue);
 </script>
 </body>
 </html>
