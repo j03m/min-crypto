@@ -1,11 +1,4 @@
-#!/usr/bin/env node
 const bars = require("./bars");
-const Binance = require("binance-api-node").default;
-const creds = require("./creds");
-const binanceClient = Binance({
-    apiKey: creds.apiKey,
-    apiSecret: creds.apiSecret,
-});
 const {Client} = require("pg");
 
 //seconds in a day, 30 days, 12 months (1 year) to millseconds
@@ -22,25 +15,22 @@ const symbol = yargs.symbol === undefined ? SYMBOL : yargs.symbol;
 process.on('unhandledRejection', up => { throw up });
 
 //accept readline for db pass
-async function go(){
+async function go(exchangeClient, maxBars){
     const dbClient = new Client({
         host: 'localhost',
         database: 'bot',
         user: 'postgres'
     });
     await dbClient.connect();
-    await doFetch(dbClient, binanceClient);
+    await doFetch(dbClient, exchangeClient, maxBars);
     await dbClient.end();
 
 }
-
-
 
 //Fetch N bars and stick it in a db for back testing
 
 //stick them in the db tables
 
-//
 
 /***
  * {
@@ -56,13 +46,13 @@ async function go(){
   baseAssetVolume: '40.61900000'
 }
  */
-async function doFetch(dbClient, binanceClient){
+async function doFetch(dbClient, exchangeClient, maxBars){
     //back fill things
     const startTime = Date.now() - CACHE_SIZE;
     const endTime = Date.now();
     const response = await bars.fetchCandles({
         fetchAction: async (request) => {
-            return await binanceClient.candles(request);
+            return await exchangeClient.candles(request);
         },
         handler: async (data) => {
             //insert each row into the db
@@ -99,7 +89,8 @@ async function doFetch(dbClient, binanceClient){
         symbol: symbol,
         interval: BAR_LEN + "m",
         startTime: startTime,
-        endTime: endTime
+        endTime: endTime,
+        maxBars: maxBars
     });
     return response;
 }
@@ -118,4 +109,4 @@ function convertObject(bar){
 
 }
 
-go().then(()=>{});
+module.exports = go;

@@ -10,5 +10,6 @@ export default interface BaseClient {
     order(trade:Order):Promise<any>,
     cancelOrder(identifier:OrderId):Promise<any>
     accountInfo():Promise<any>
-    candles(candlesRequest: CandlesRequest):Promise<Array<Candle>>
+    candles(candlesRequest: CandlesRequest):Promise<Array<Candle>>,
+    getSymbol(asset:string, currency:string):string
 }

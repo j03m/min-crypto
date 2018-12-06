@@ -1,26 +1,29 @@
 import * as CandleRequest from "../types/candles-request";
 import {CandlesRequest} from "../types/candles-request";
+import Candle from "../types/candle";
 import {FetchHandler} from "../types/candles-request";
+import {Interval} from "../types/enums";
+
 const assert = require("assert");
 const debug = require("debug")("fetch");
 const {
     expandInterval,
-} = require("./util");
+} = require("../utils/util");
 const defaultMaxBars = 500;
 
 interface TimeWindow {
-    start:number,
-    end:number
+    start: number,
+    end: number
 }
 
-async function fetchCandles(options: CandleRequest.FetchOptions){
+async function fetchCandles(options: CandleRequest.FetchOptions) {
     let fetchAction = options.fetchAction;
     let symbol = options.symbol;
     let interval = options.interval;
     let startTime = options.startTime;
     let endTime = options.endTime;
-    let handler = options.handler;
     let maxBars = options.maxBars;
+    let handler = options.handler;
 
     assert(typeof startTime === "number" && startTime < Date.now(), "startTime must be a number less then the current time");
     assert(typeof endTime === "number", "endTime must be a number");
@@ -34,23 +37,24 @@ async function fetchCandles(options: CandleRequest.FetchOptions){
     return doFetchInSteps(fetchAction, symbol, interval, timeWindows, handler);
 }
 
-async function doFetchInSteps(fetchAction:CandleRequest.FetchHandler,
-                              symbol:string,
-                              interval:string,
-                              timeWindows:Array<TimeWindow>,
-                              handler:any){
-    let results = [];
-    for(let startEndPair of timeWindows){
+async function doFetchInSteps(fetchAction: CandleRequest.FetchHandler,
+                              symbol: string,
+                              interval: Interval,
+                              timeWindows: Array<TimeWindow>,
+                              handler: CandleRequest.ResultHandler) {
+    let results: Array<Candle> = [];
+    for (let startEndPair of timeWindows) {
         debug("fetching...");
         let result = await fetchAction({
-            symbol:symbol,
-            interval:interval,
+            symbol: symbol,
+            interval: interval,
             startTime: startEndPair.start,
-            endTime: startEndPair.end
+            endTime: startEndPair.end,
+            maxBars: 300
         });
         debug("fetched, handling...");
         if (handler){
-            result =  await handler(result);
+            await handler(results);
         }
         debug("handled.");
         results = results.concat(result);
@@ -65,16 +69,16 @@ async function doFetchInSteps(fetchAction:CandleRequest.FetchHandler,
  * @param intervalObj
  * @param maxBars
  */
-function calculateCallTimeWindows(startTime:number,
-                                  endTime:number,
-                                  intervalObj:any,
-                                  maxBars:number): Array<TimeWindow>{
+function calculateCallTimeWindows(startTime: number,
+                                  endTime: number,
+                                  intervalObj: any,
+                                  maxBars: number): Array<TimeWindow> {
     //next we want to determine how many calls we need to make to fetch all intervals between start and end time.
     let windowStart = startTime;
     let windowEnd = 0;
     let finalMaxBars = maxBars || defaultMaxBars;
     let results = [];
-    while(windowStart < endTime){
+    while (windowStart < endTime) {
         windowEnd = windowStart + intervalObj.cost * finalMaxBars;
         results.push({
             start: windowStart,
@@ -84,8 +88,6 @@ function calculateCallTimeWindows(startTime:number,
     }
     return results;
 }
-
-
 
 
 module.exports = {

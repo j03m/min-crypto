@@ -6,7 +6,7 @@ Will trade. Back tester in flight. This code is a work in flight, adopt with cau
 
 
 TODO:
-* Vet GDAX Client
+* Can you download eth usd to backtest db?
 * Prettier
 * TypeScript
 * TS Lint

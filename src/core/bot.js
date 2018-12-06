@@ -6,7 +6,7 @@ const BandGenerator = require('technicalindicators').BollingerBands;
 const Advice = require("./advice");
 const Portfolio = require("./portfolio");
 const config = require("./config");
-const rendr = require("./rendr");
+const rendr = require("../vis/rendr");
 const moment = require("moment");
 
 
@@ -15,7 +15,6 @@ const moment = require("moment");
 const CURRENCY = config.currency;
 const ASSET = config.asset;
 const TETHER = config.tether;
-const SYMBOL = `${CURRENCY}${ASSET}`;
 const CURRENCY_TETHER = `${CURRENCY}${TETHER}`;
 const ASSET_TETHER = `${ASSET}${TETHER}`;
 const ORDER_SIZE = BN(config.orderSize);
@@ -46,6 +45,7 @@ class Bot {
     this._guide = [];
     this._allCandles = [];
     this._valueHistory = [];
+    this._symbol = this._client.getSymbol(config.asset, config.currency);
   }
 
 
@@ -154,12 +154,12 @@ class Bot {
 
   async cancelOpenOrders() {
     const openOrders = await this._client.openOrders({
-      symbol: SYMBOL
+      symbol: this._symbol
     });
     for (let i = 0; i < openOrders.length; i++) {
       const orderId = openOrders[i].orderId;
       await this._client.cancelOrder({
-        symbol: SYMBOL,
+        symbol: this._symbol,
         orderId: orderId
       });
     }
@@ -167,7 +167,7 @@ class Bot {
 
   getBuyOrder() {
     this._pendingTrade = {
-      symbol: SYMBOL,
+      symbol: this._symbol,
       side: 'BUY',
       quantity: ORDER_SIZE.toString(),
       price: this._lastValue.toString(),
@@ -184,7 +184,7 @@ class Bot {
 
   getSellOrder() {
     this._pendingTrade = {
-      symbol: SYMBOL,
+      symbol: this._symbol,
       side: 'SELL',
       quantity: ORDER_SIZE,
       price: this._lastValue.toString(),
@@ -266,7 +266,7 @@ class Bot {
       fetchAction: async (request) => {
         return await this._client.candles(request);
       },
-      symbol: SYMBOL,
+      symbol: this._symbol,
       interval: BAR_LEN + "m",
       startTime: startTime,
       endTime: endTime,
@@ -359,7 +359,7 @@ class Bot {
     //listen, get a tick
     rendr.web(this); //kick off the web server
     return new Promise((f, r) => {
-      this._ws.candles(SYMBOL, TICK_LEN + 'm', async candle => {
+      this._ws.candles(this._symbol, TICK_LEN + 'm', async candle => {
         if (this.initComplete) {
           this._lastValue = BN(candle[BAR_PROPERTY]);
           this._lastCandle = candle;

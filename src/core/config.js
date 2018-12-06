@@ -1,6 +1,6 @@
 module.exports = {
-  "currency": "ETH",
-  "asset": "BTC",
+  "currency": "USD",
+  "asset": "ETH",
   "period": 20,
   "tickLen": 1,
   "barLen": 15,

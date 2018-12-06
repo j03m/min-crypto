@@ -88,6 +88,10 @@ class GdaxClient implements BaseClient {
         return Promise.resolve();
     }
 
+    public getSymbol(asset:string, currency:string):string{
+        return `${asset}-${currency}`;
+    }
+
     private _messageHandler(message: GdaxMessage) {
         const payload = JSON.parse(message.data);
         if (payload.type === "ticker") {
