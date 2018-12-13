@@ -5,11 +5,11 @@ import { CandlesRequest } from "../types/candles-request";
 import Candle from "../types/candle";
 
 export default interface BaseClient {
-    socket: BaseSocket,
     init():Promise<any>,
     order(trade:Order):Promise<any>,
     cancelOrder(identifier:OrderId):Promise<any>
     accountInfo():Promise<any>
     candles(candlesRequest: CandlesRequest):Promise<Array<Candle>>,
     getSymbol(asset:string, currency:string):string
+    ws: BaseSocket
 }

@@ -4,6 +4,6 @@ const creds = require("../gdax-creds.json");
 const client = new Client(creds);
 const fetchAndCache = require("./fetch-and-cache");
 
-fetchAndCache(client, 300).then((result) => {
+fetchAndCache(client, 300, 500).then(() => {
   console.log("done!");
 });

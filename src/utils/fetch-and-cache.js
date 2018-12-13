@@ -1,28 +1,29 @@
-const bars = require("./bars");
+const bars = require("../core/bars");
 const {Client} = require("pg");
 
 //seconds in a day, 30 days, 12 months (1 year) to millseconds
 const CACHE_SIZE = 86400 * 30 * 12 *  1000;
-const CURRENCY = "ETH";
-const ASSET = "BTC";
-const SYMBOL = `${CURRENCY}${ASSET}`;
+const CURRENCY = "USD";
+const ASSET = "ETH";
 const BAR_LEN = 15;
 const yargs = require("yargs").argv;
 
-const symbol = yargs.symbol === undefined ? SYMBOL : yargs.symbol;
-
+const currency = yargs.currency === undefined ? CURRENCY : yargs.currency;
+const asset = yargs.asset === undefined ? ASSET : yargs.asset;
+let symbol;
 
 process.on('unhandledRejection', up => { throw up });
 
 //accept readline for db pass
-async function go(exchangeClient, maxBars){
+async function go(exchangeClient, maxBars, requestDelay){
+    symbol = exchangeClient.getSymbol(asset, currency);
     const dbClient = new Client({
         host: 'localhost',
         database: 'bot',
         user: 'postgres'
     });
     await dbClient.connect();
-    await doFetch(dbClient, exchangeClient, maxBars);
+    await doFetch(dbClient, exchangeClient, maxBars, requestDelay);
     await dbClient.end();
 
 }
@@ -31,6 +32,12 @@ async function go(exchangeClient, maxBars){
 
 //stick them in the db tables
 
+
+function setTimeoutP(time){
+  return new Promise((f) => {
+    setTimeout(f, time);
+  });
+}
 
 /***
  * {
@@ -46,12 +53,13 @@ async function go(exchangeClient, maxBars){
   baseAssetVolume: '40.61900000'
 }
  */
-async function doFetch(dbClient, exchangeClient, maxBars){
+async function doFetch(dbClient, exchangeClient, maxBars, requestDelay){
     //back fill things
     const startTime = Date.now() - CACHE_SIZE;
     const endTime = Date.now();
     const response = await bars.fetchCandles({
         fetchAction: async (request) => {
+            await setTimeoutP(requestDelay); //delay
             return await exchangeClient.candles(request);
         },
         handler: async (data) => {
@@ -75,13 +83,19 @@ async function doFetch(dbClient, exchangeClient, maxBars){
                                         $7,
                                         $8)`;
 
-
+                //todo: getting NaN error for timestamp prob in the candle converter
                 for (let i = 0; i < data.length; i++){
                     const insertValues = convertObject(data[i]);
-                    await dbClient.query({
+                    try{
+                      await dbClient.query({
                         text: insert,
                         values: insertValues
-                    });
+                      });
+                    }catch(ex){
+                      console.log("Failed to execute sql query: ", insert, " ", "data: ", data);
+                      throw ex;
+                    }
+
                 }
 
             return []; //so we don't build a buffer
@@ -98,13 +112,13 @@ async function doFetch(dbClient, exchangeClient, maxBars){
 function convertObject(bar){
     return [
         symbol,
-        bar.openTime / 1000, //postgres timestamp is seconds
+        bar.opentime.getTime() / 1000, //postgres timestamp is seconds
         bar.open,
         bar.high,
         bar.low,
         bar.close,
-        bar.quoteAssetVolume,
-        bar.baseAssetVolume
+        bar.volume,
+        bar.volume
     ];
 
 }

@@ -67,16 +67,17 @@ class GdaxClient implements BaseClient {
     private apiUri: string;
 
     public constructor(credentials: ApiPackage) {
+        //todo: j03m uncomment me, why does this discon and throw?
         this.socket = new ReconnectingWebSocket(credentials.websocketUri, [], {
             WebSocket: WS
         });
         this.socket.addEventListener("message", this._messageHandler.bind(this));
         this.socket.addEventListener("error", (e) => {
             //todo: you will need to reconnect on timeout
-            throw e;
+            console.log("gdax socket error:", e);
         });
         this.socket.addEventListener("close", () => {
-            throw new Error("Unexpected websocket close");
+            console.log("gdax socket close!");
         });
         this.socket.addEventListener("open", () => {
         });
@@ -141,7 +142,13 @@ class GdaxClient implements BaseClient {
         const granularity:number = expandedInterval.cost/1000;
         const symbol = candleRequest.symbol;
         const url:string = `${this.apiUri}/products/${symbol}/candles?start=${start}&end=${end}&granularity=${granularity}`;
-        const response = await axios.get(url);
+        let response;
+        try{
+            response = await axios.get(url);
+        }catch(ex){
+            console.log(`request for ${url} failed with:`, ex);
+            throw ex;
+        }
 
         //transform request?
         return this.gdaxCandleArrayToCandleArray(symbol, response.data);
@@ -149,10 +156,11 @@ class GdaxClient implements BaseClient {
     }
 
     gdaxCandleArrayToCandleArray(symbol: string, candleArrays:any):Array<Candle>{
+        //todo new date from the timestamp here is giving me a date from 1970. Wtf.
         return candleArrays.map((candleArray: any) => {
             //[ time, low, high, open, close, volume ]
             return {
-                opentime : new Date(candleArray[0]),
+                opentime : new Date(candleArray[0] * 1000),
                 symbol: symbol,
                 open: candleArray[3].toString(),
                 high: candleArray[2].toString(),

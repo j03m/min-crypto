@@ -1,11 +1,11 @@
-const mobx = require("mobx");
+
+const config = require("./config").default;
 const bars = require("./bars");
 const bands = require("./bands");
 const BN = require("bignumber.js");
 const BandGenerator = require('technicalindicators').BollingerBands;
 const Advice = require("./advice");
 const Portfolio = require("./portfolio");
-const config = require("./config");
 const rendr = require("../vis/rendr");
 const moment = require("moment");
 
@@ -15,8 +15,8 @@ const moment = require("moment");
 const CURRENCY = config.currency;
 const ASSET = config.asset;
 const TETHER = config.tether;
-const CURRENCY_TETHER = `${CURRENCY}${TETHER}`;
-const ASSET_TETHER = `${ASSET}${TETHER}`;
+let CURRENCY_TETHER;
+let ASSET_TETHER;
 const ORDER_SIZE = BN(config.orderSize);
 const BAR_PROPERTY = config.barProperty;
 const STOP_PERCENT = BN(config.stopPercent); //5%
@@ -46,6 +46,10 @@ class Bot {
     this._allCandles = [];
     this._valueHistory = [];
     this._symbol = this._client.getSymbol(config.asset, config.currency);
+    if (config.requiresTether){
+      CURRENCY_TETHER = this._client.getSymbol(config.currency, config.tether);
+      ASSET_TETHER = this._client.getSymbol(config.asset, config.tether);
+    }
   }
 
 
@@ -330,12 +334,47 @@ class Bot {
   //
   //Me: Okay. But later.
   generatePortfolioValues() {
-    if (this._originalValue === undefined && this._lastAssetTether !== undefined && this._lastCurrencyTether !== undefined) {
-      this._originalValue = this._originalPortfolio.value(this.lastAssetTether, this.lastCurrencyTether);
+    if (config.requiresTether){
+      this._generateTetheredPortfolioValues();
+    }
+    else{
+      this._generatePortfolioValues();
+    }
+    this._valueHistory.push(this._currentValues);
+  }
+
+  _generatePortfolioValues(){
+
+    if (this._originalValue === undefined){
+      this._originalValue = this._originalPortfolio.value();
     }
 
-    const tradedPortValue = this._portfolio.value(this.lastAssetTether, this.lastCurrencyTether);
-    const currentHodlValue = this._originalPortfolio.value(this.lastAssetTether, this.lastCurrencyTether);
+    const tradedPortValue = this._portfolio.value();
+    const currentHodlValue = this._originalPortfolio.value();
+
+    const tradedDiff = tradedPortValue.minus(this._originalValue);
+    const heldDiff = currentHodlValue.minus(this._originalValue);
+
+    const tradedPercentChange = this._returnValueOrZero(tradedDiff.dividedBy(this._originalValue).times(100).toNumber());
+    const heldPercentChange = this._returnValueOrZero(heldDiff.dividedBy(this._originalValue).times(100).toNumber());
+
+    this._currentValues = {
+      tradedValue: tradedPortValue.toNumber(),
+      holdValue: currentHodlValue.toNumber(),
+      originalValue: this._originalValue === undefined ? 0 : this._originalValue.toNumber(),
+      tradedPercentChange: tradedPercentChange,
+      heldPercentChange: heldPercentChange,
+      when: this._lastCandle.opentime.getTime()
+    };
+  }
+
+  _generateTetheredPortfolioValues(){
+    if (this._originalValue === undefined && this._lastAssetTether !== undefined && this._lastCurrencyTether !== undefined) {
+      this._originalValue = this._originalPortfolio.tetheredValue(this.lastAssetTether, this.lastCurrencyTether);
+    }
+
+    const tradedPortValue = this._portfolio.tetheredValue(this.lastAssetTether, this.lastCurrencyTether);
+    const currentHodlValue = this._originalPortfolio.tetheredValue(this.lastAssetTether, this.lastCurrencyTether);
 
     const tradedDiff = tradedPortValue.minus(this._originalValue);
     const heldDiff = currentHodlValue.minus(this._originalValue);
@@ -352,7 +391,6 @@ class Bot {
       when: this._lastCandle.opentime.getTime()
     };
 
-    this._valueHistory.push(this._currentValues);
   }
 
   listen() {
@@ -371,21 +409,24 @@ class Bot {
         }
       });
 
-      //get USDT for ASSET
-      this._ws.candles(ASSET_TETHER, TICK_LEN + "m", (candle) => {
-        this._lastAssetTether = BN(candle[BAR_PROPERTY]);
-        if (this._lastCurrencyTether !== undefined) {
-          this._render();
-        }
-      });
+      //todo: Finish gating tethers here
+      //goal is still working with binance but not messing up gdax
+      if (config.requiresTether){
+        //get USDT for ASSET
+        this._ws.candles(ASSET_TETHER, TICK_LEN + "m", (candle) => {
+          this._lastAssetTether = BN(candle[BAR_PROPERTY]);
+          if (this._lastCurrencyTether !== undefined) {
+            this._render();
+          }
+        });
 
-      this._ws.candles(CURRENCY_TETHER, TICK_LEN + "m", (candle) => {
-        this._lastCurrencyTether = BN(candle[BAR_PROPERTY]);
-        if (this._lastAssetTether) {
-          this._render();
-        }
-      });
-
+        this._ws.candles(CURRENCY_TETHER, TICK_LEN + "m", (candle) => {
+          this._lastCurrencyTether = BN(candle[BAR_PROPERTY]);
+          if (this._lastAssetTether) {
+            this._render();
+          }
+        });
+      }
 
       this._ws.user((msg) => {
         if (msg.eventType === "account") {

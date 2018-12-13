@@ -72,7 +72,11 @@ class Portfolio {
         return this._currency.free.minus(amount).isGreaterThanOrEqualTo(0);
     }
 
-    value(assetTether, currencyTether) {
+    value(){
+      return this.asset.free.plus(this.asset.locked).times(this.currency.free.plus(this.currency.locked));
+    }
+
+    tetheredValue(assetTether, currencyTether) {
       const assetValue = this.asset.free.plus(this.asset.locked).times(assetTether);
       const currencyValue = this.currency.free.plus(this.currency.locked).times(currencyTether);
       return assetValue.plus(currencyValue);

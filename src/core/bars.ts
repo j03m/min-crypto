@@ -54,7 +54,7 @@ async function doFetchInSteps(fetchAction: CandleRequest.FetchHandler,
         });
         debug("fetched, handling...");
         if (handler){
-            await handler(results);
+            await handler(result);
         }
         debug("handled.");
         results = results.concat(result);

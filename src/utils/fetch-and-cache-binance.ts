@@ -7,6 +7,6 @@ const binanceClient = Binance({
   apiSecret: creds.apiSecret,
 });
 
-fetchAndCache(binanceClient, 500).then((result) => {
+fetchAndCache(binanceClient, 500).then(() => {
   console.log("done!");
 });
