@@ -129,13 +129,6 @@ class GdaxClient implements BaseClient {
     }
 
     async candles(candleRequest: CandlesRequest): Promise<Array<Candle>> {
-        //todo: j03m implement the candle request to Gdax
-        //then move dbclient to types
-        //then wrap binance client ?? maybe?
-        //then back test USD
-        //then move BOT to types and Gdax
-        //run
-
         const start:string = new Date(candleRequest.startTime).toISOString();
         const end:string = new Date(candleRequest.endTime).toISOString();
         const expandedInterval:ExpandedInterval = expandInterval(candleRequest.interval);
@@ -156,7 +149,6 @@ class GdaxClient implements BaseClient {
     }
 
     gdaxCandleArrayToCandleArray(symbol: string, candleArrays:any):Array<Candle>{
-        //todo new date from the timestamp here is giving me a date from 1970. Wtf.
         return candleArrays.map((candleArray: any) => {
             //[ time, low, high, open, close, volume ]
             return {

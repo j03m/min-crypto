@@ -2,7 +2,7 @@ import BaseSocket from "./base-socket";
 import {Client} from "pg";
 import config from "../core/config";
 import Candle from "../types/candle";
-import TestRange from "../types/test-range";
+import BackTestOptions from "../types/back-test-options";
 import Update, {UpdateHandler} from "../types/update";
 import {Balance} from "../types/portfolio-types";
 interface handler {
@@ -19,7 +19,7 @@ export default class DBSocket implements BaseSocket{
     private _interval: any;
     private _userCb:UpdateHandler;
 
-    constructor(options: TestRange, postGres: Client){
+    constructor(options: BackTestOptions, postGres: Client){
         this._tickStart = options.testStart;
         this._testEnd = options.testEnd;
         this._orders = 0;

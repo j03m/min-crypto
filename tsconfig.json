@@ -6,7 +6,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "inlineSources": true,
-    "outDir": "./dist",
+    "outDir": "./src",
     "allowJs": true,
     "target": "ES2018",
     "lib": ["es7"]

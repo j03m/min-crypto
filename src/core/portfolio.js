@@ -64,16 +64,18 @@ class Portfolio {
     canBuy(shares, price){
         //enough base free?
         const amount = price.multipliedBy(shares);
-        return this._asset.free.minus(amount).isGreaterThanOrEqualTo(0);
+        return this._currency.free.minus(amount).isGreaterThanOrEqualTo(0);
     }
 
     canSell(shares){
         const amount = shares;
-        return this._currency.free.minus(amount).isGreaterThanOrEqualTo(0);
+        return this._asset.free.minus(amount).isGreaterThanOrEqualTo(0);
     }
 
-    value(){
-      return this.asset.free.plus(this.asset.locked).times(this.currency.free.plus(this.currency.locked));
+    value(quote){
+      const assetValue = this.asset.free.times(quote).plus(this.asset.locked.times(quote));
+      const currencyValue = this.currency.free.plus(this.currency.locked);
+      return assetValue.plus(currencyValue);
     }
 
     tetheredValue(assetTether, currencyTether) {

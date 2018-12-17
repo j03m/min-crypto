@@ -248,7 +248,7 @@ class Bot {
   convertAndUpdatePortfolio(balances) {
     const asArray = Object.keys(balances).reduce((acc, key) => {
       const obj = balances[key];
-      const available = obj.available;
+      const available = obj.free;
       const locked = obj.locked;
       acc.push({
         asset: key,
@@ -344,13 +344,13 @@ class Bot {
   }
 
   _generatePortfolioValues(){
-
+    const quote = BN(this._lastCandle[config.barProperty]);
     if (this._originalValue === undefined){
-      this._originalValue = this._originalPortfolio.value();
+      this._originalValue = this._originalPortfolio.value(quote);
     }
 
-    const tradedPortValue = this._portfolio.value();
-    const currentHodlValue = this._originalPortfolio.value();
+    const tradedPortValue = this._portfolio.value(quote);
+    const currentHodlValue = this._originalPortfolio.value(quote);
 
     const tradedDiff = tradedPortValue.minus(this._originalValue);
     const heldDiff = currentHodlValue.minus(this._originalValue);
@@ -409,7 +409,6 @@ class Bot {
         }
       });
 
-      //todo: Finish gating tethers here
       //goal is still working with binance but not messing up gdax
       if (config.requiresTether){
         //get USDT for ASSET
@@ -449,7 +448,9 @@ class Bot {
     rendr.set(`current: ${currentValues.tradedValue}  change: ${currentValues.tradedPercentChange}`);
     rendr.set(`hodl: ${currentValues.holdValue} change: ${currentValues.heldPercentChange}`);
     rendr.set(`original: ${this._originalValue}`);
+
     rendr.set(`current bar: ${moment(this._lastCandle.opentime)} total trades: ${this._tradeCount}`);
+    rendr.set(`current bar value: ${this._lastCandle[BAR_PROPERTY].toString()} vs ${this._guide[this._guide.length - 1].mid.toString()}`)
     rendr.set(`last trade: ${moment(this._lastTradeTime)} total trades: ${this._tradeCount}`);
   }
 }

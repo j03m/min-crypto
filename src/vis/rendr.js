@@ -49,6 +49,9 @@ function web(bot) {
 
 }
 
+//todo: get template assets to copy via tsc
+//todo: run and observe back test
+
 function processTemplate(template, history, valueHistory) {
 
   const dates = extractDateArray(history.candles);

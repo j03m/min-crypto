@@ -1,4 +1,5 @@
-const {buySeverity, sellSeverity} = require("./config");
+import Config from "./config";
+const {buySeverity, sellSeverity} = Config;
 const BN = require("bignumber.js");
 
 

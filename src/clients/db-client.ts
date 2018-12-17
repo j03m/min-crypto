@@ -4,23 +4,26 @@ import BaseClient from "./base-client";
 import DBSocket from "./db-socket";
 import Order from "../types/order";
 import OrderId from "../types/order-id";
-import TestRange from "../types/test-range";
+import BackTestOptions from "../types/back-test-options";
 
 import { CandlesRequest } from "../types/candles-request";
+import {AccountInfo} from "../types/portfolio-types";
 
 
-class DBClient implements BaseClient {
+export default class DBClient implements BaseClient {
     private _postGres: Client;
     private _ws: DBSocket;
     private _mockPortfolio: any; //todo update
-    constructor(options: TestRange){
+    private _initialBalance: AccountInfo;
+    constructor(options: BackTestOptions){
         this._postGres = new Client({
             host: 'localhost',
             database: 'bot',
             user: 'postgres'
         });
         this._ws = new DBSocket(options, this._postGres);
-        this._mockPortfolio = new MockPortfolio(this._accountInfoSync());
+        this._initialBalance = options.balance;
+        this._mockPortfolio = new MockPortfolio(this._initialBalance);
     }
 
     async init(){
@@ -48,27 +51,11 @@ class DBClient implements BaseClient {
     cancelOrder(identifier:OrderId){
         return Promise.resolve();
     }
-    //This is called upfront. All our back tests
-    //user 1:1. If you want to change that, edit this.
-    //todo config file one day?
+
     accountInfo(){
-        return Promise.resolve(this._accountInfoSync());
+        return Promise.resolve(this._initialBalance);
     }
-    _accountInfoSync(){
-        return {
-            makerCommission: 10,
-            takerCommission: 10,
-            buyerCommission: 0,
-            sellerCommission: 0,
-            canTrade: true,
-            canWithdraw: true,
-            canDeposit: true,
-            balances: [
-                { asset: 'BTC', free: '1.00000000', locked: '0.00000000' },
-                { asset: 'ETH', free: '1.00000000', locked: '0.00000000' },
-            ]
-        };
-    }
+
     async candles(request:CandlesRequest){
         //look at start and end times, convert to seconds
         //select from bars where between start, end
@@ -85,5 +72,3 @@ class DBClient implements BaseClient {
     }
 }
 
-
-module.exports = DBClient;

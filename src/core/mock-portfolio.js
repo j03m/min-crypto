@@ -1,7 +1,7 @@
 const Portfolio = require("./portfolio");
-const config = require("./config");
+const config = require("./config").default;
 const BN = require("bignumber.js");
-//move currency and asset to a config - its time
+
 class MockPortfolio extends Portfolio {
     constructor(input){
         const currencyBalance = Portfolio.findBalance(input.balances, config.currency);
@@ -36,12 +36,12 @@ class MockPortfolio extends Portfolio {
         const order = this.bigNumberOrder(input);
         //buy ASSET with CURRENCY - ETHBTC means we buy BTC with ETH
         this._currency.free = this._currency.free.minus(order.quantity.multipliedBy(order.price));
-        this._asset.free = this._asset.free.plus(order.quantity.multipliedBy(order.price));
+        this._asset.free = this._asset.free.plus(order.quantity);
     }
 
     executeSell(order){
         this._currency.free = this._currency.free.plus(order.quantity.multipliedBy(order.price))
-        this._asset.free = this._asset.free.minus(order.quantity.multipliedBy(order.price));
+        this._asset.free = this._asset.free.minus(order.quantity);
     }
 }
 
