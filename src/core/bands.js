@@ -1,7 +1,8 @@
 const BN = require("bignumber.js");
+const BandGenerator = require('technicalindicators').BollingerBands;
 module.exports = {
 
-  makeBand(BandGenerator, data, period, stdDev){
+  makeBand(data, period, stdDev){
     return BandGenerator.calculate({
       period: period,
       values: data,

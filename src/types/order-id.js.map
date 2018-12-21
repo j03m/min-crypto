@@ -1,0 +1,1 @@
+{"version":3,"file":"order-id.js","sourceRoot":"","sources":["order-id.ts"],"names":[],"mappings":"","sourcesContent":["import {Side} from \"./enums\";\n\nexport default interface OrderId{\n    side: Side,\n    orderId: string\n}"]}

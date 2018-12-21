@@ -1,3 +1,9 @@
+export enum BuySellStrategy {
+    balanced = 0,
+    nibbleAndFlush = 1
+}
+
+
 export interface Config {
     currency:string;
     asset:string;
@@ -12,6 +18,8 @@ export interface Config {
     tick:number;
     buySeverity:number;
     sellSeverity:number;
+    buySellStategy:BuySellStrategy
+
 };
 
 export default Object.freeze( {
@@ -27,6 +35,7 @@ export default Object.freeze( {
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
-    "buySeverity": "aggressive",
-    "sellSeverity": "conservative"
+    "buySeverity": "conservative",
+    "sellSeverity": "conservative",
+    "buySellStategy": BuySellStrategy.nibbleAndFlush
 });

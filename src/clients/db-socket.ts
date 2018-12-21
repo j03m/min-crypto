@@ -73,7 +73,9 @@ export default class DBSocket implements BaseSocket{
                 text: select,
                 values: [this._tickStart/1000, this._testEnd/1000, symbol]
             })
-            throw new Error("TEST DONE"); //todo: maybe be a little less ham fisted?
+            console.log("TEST DONE"); //todo: maybe be a little less ham fisted?
+            const p = new Promise(()=>{});
+            await p; //pause forever
         }
 
     }

@@ -1,0 +1,1 @@
+{"version":3,"file":"api-package.js","sourceRoot":"","sources":["api-package.ts"],"names":[],"mappings":";;AAKC,CAAC","sourcesContent":["export default interface ApiPackage {\n    apiKey?: string,\n    apiSecret?: string,\n    apiUri:string,\n    websocketUri:string\n};"]}

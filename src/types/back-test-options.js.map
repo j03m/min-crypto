@@ -1,0 +1,1 @@
+{"version":3,"file":"back-test-options.js","sourceRoot":"","sources":["back-test-options.ts"],"names":[],"mappings":"","sourcesContent":["import {AccountInfo} from \"./portfolio-types\";\n\nexport default interface BackTestOptions {\n    testStart: number,\n    testEnd: number,\n    balance: AccountInfo\n}"]}

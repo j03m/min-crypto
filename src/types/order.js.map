@@ -1,0 +1,1 @@
+{"version":3,"file":"order.js","sourceRoot":"","sources":["order.ts"],"names":[],"mappings":"","sourcesContent":["export default interface Order{\n    symbol:string,\n    side:string,\n    quantity:string,\n    price:string,\n    when:Date\n}"]}

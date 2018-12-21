@@ -64,12 +64,12 @@ class Portfolio {
     canBuy(shares, price){
         //enough base free?
         const amount = price.multipliedBy(shares);
-        return this._currency.free.minus(amount).isGreaterThanOrEqualTo(0);
+        return amount.isGreaterThan(0) && this._currency.free.minus(amount).isGreaterThanOrEqualTo(0);
     }
 
     canSell(shares){
         const amount = shares;
-        return this._asset.free.minus(amount).isGreaterThanOrEqualTo(0);
+        return amount.isGreaterThan(0) && this._asset.free.minus(amount).isGreaterThanOrEqualTo(0);
     }
 
     value(quote){

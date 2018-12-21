@@ -26,13 +26,13 @@ function web(bot) {
 
   const requestHandler = (request, response) => {
     if (request.url.indexOf("plotly") !== -1){
-      response.end(fs.readFileSync("./plotly-min.js").toString());
+      response.end(fs.readFileSync(`${process.cwd()}/dist/vis/plotly-min.js`).toString());
       return;
     }
 
     const history = bot.history;
     const valueHistory = bot.valueHistory;
-    const template = fs.readFileSync("./template.html").toString();
+    const template = fs.readFileSync(`${process.cwd()}/dist/vis/template.html`).toString();
     const final = processTemplate(template, history, valueHistory);
     response.end(final);
   };
@@ -113,7 +113,6 @@ function extractTrades(candles, trades, key, dates){
   return JSON.stringify(candles.reduce((acc, candle, index)=>{
     const trade = trades[candle.opentime.getTime()];
     if (trade && trade.side === key){
-        console.log(dates[index]);
         acc.push(BN(trade.price).toNumber());
     }else {
       acc.push(undefined);

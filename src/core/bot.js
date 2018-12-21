@@ -1,9 +1,9 @@
+import {BuySellStrategy} from "./config";
 
 const config = require("./config").default;
 const bars = require("./bars");
 const bands = require("./bands");
 const BN = require("bignumber.js");
-const BandGenerator = require('technicalindicators').BollingerBands;
 const Advice = require("./advice");
 const Portfolio = require("./portfolio");
 const rendr = require("../vis/rendr");
@@ -96,12 +96,12 @@ class Bot {
     return this._pendingTrade;
   }
 
-  generateBands() {
+  generateIndicators() {
     const numbers = this._data.map((value) => {
       return value.toNumber()
     });
-    const stdDev2 = bands.makeBand(BandGenerator, numbers, PERIOD, 2);
-    const stdDev1 = bands.makeBand(BandGenerator, numbers, PERIOD, 1);
+    const stdDev2 = bands.makeBand(numbers, PERIOD, 2);
+    const stdDev1 = bands.makeBand(numbers, PERIOD, 1);
     const guide = bands.makeGuide(stdDev1, stdDev2);
     this._guide.push(guide);
     return guide;
@@ -111,6 +111,20 @@ class Bot {
     return this._currentAdvice;
   }
 
+  get buyOrderSize(){
+      return ORDER_SIZE;
+  }
+
+  get sellOrderSize() {
+    if (config.buySellStategy === BuySellStrategy.balanced) {
+      return ORDER_SIZE;
+    }
+    else if (config.buySellStategy === BuySellStrategy.nibbleAndFlush){
+      return this._portfolio.asset.free;
+    }else {
+      throw new Error("unrecognized strategy")
+    }
+  }
 
   generateAdvice() {
     const bands = this._guide[this._guide.length - 1];
@@ -173,7 +187,7 @@ class Bot {
     this._pendingTrade = {
       symbol: this._symbol,
       side: 'BUY',
-      quantity: ORDER_SIZE.toString(),
+      quantity: this.buyOrderSize.toString(),
       price: this._lastValue.toString(),
       when: this._lastCandle.opentime
     };
@@ -190,7 +204,7 @@ class Bot {
     this._pendingTrade = {
       symbol: this._symbol,
       side: 'SELL',
-      quantity: ORDER_SIZE,
+      quantity: this.sellOrderSize.toString(),
       price: this._lastValue.toString(),
       when: this._lastCandle.opentime
     };
@@ -212,7 +226,7 @@ class Bot {
       this.generateAdvice();
       const advice = this.advice;
       if (advice.buy &&
-        this._portfolio.canBuy(ORDER_SIZE, this._lastValue) &&
+        this._portfolio.canBuy(this.buyOrderSize, this._lastValue) &&
         this._pendingTrade === undefined) {
         this._tradeCount++;
         const trade = this.getBuyOrder();
@@ -220,7 +234,7 @@ class Bot {
       }
 
       if (advice.sell &&
-        this._portfolio.canSell(ORDER_SIZE, this._lastValue) &&
+        this._portfolio.canSell(this.sellOrderSize, this._lastValue) &&
         this._pendingTrade === undefined) {
         this._tradeCount++;
         const trade = this.getSellOrder();
@@ -283,7 +297,7 @@ class Bot {
       return BN(value)
     });
 
-    const guide = this.generateBands();
+    const guide = this.generateIndicators();
     //pad out the guides to they are the same length as initial candles
     this._guide = this._data.map(() => {
       return guide;
@@ -297,7 +311,7 @@ class Bot {
       this._data.shift();
       this._data.push(BN(candle[BAR_PROPERTY]));
       this._allCandles.push(candle);
-      this.generateBands();
+      this.generateIndicators();
       this.generatePortfolioValues();
       return true;
     }
@@ -347,10 +361,13 @@ class Bot {
     const quote = BN(this._lastCandle[config.barProperty]);
     if (this._originalValue === undefined){
       this._originalValue = this._originalPortfolio.value(quote);
+      this._maxInitialHodlAsset = this._originalPortfolio.currency.free.dividedBy(quote);
     }
 
     const tradedPortValue = this._portfolio.value(quote);
-    const currentHodlValue = this._originalPortfolio.value(quote);
+    //because we're trading usd here, hodl value is the value if we had bought all of our eth up front
+    const currentHodlValue = this._maxInitialHodlAsset.times(quote);
+
 
     const tradedDiff = tradedPortValue.minus(this._originalValue);
     const heldDiff = currentHodlValue.minus(this._originalValue);

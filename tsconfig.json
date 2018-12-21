@@ -6,12 +6,15 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "inlineSources": true,
-    "outDir": "./src",
+    "outDir": "./dist",
     "allowJs": true,
     "target": "ES2018",
     "lib": ["es7"]
   },
   "include": [
     "./src/**/*"
+  ],
+  "exclude": [
+    "./src/vis/plotly-min.js"
   ]
 }

@@ -39,7 +39,8 @@ class MockPortfolio extends Portfolio {
         this._asset.free = this._asset.free.plus(order.quantity);
     }
 
-    executeSell(order){
+    executeSell(input){
+        const order = this.bigNumberOrder(input);
         this._currency.free = this._currency.free.plus(order.quantity.multipliedBy(order.price))
         this._asset.free = this._asset.free.minus(order.quantity);
     }

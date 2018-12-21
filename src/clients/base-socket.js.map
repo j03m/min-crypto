@@ -1,0 +1,1 @@
+{"version":3,"file":"base-socket.js","sourceRoot":"","sources":["base-socket.ts"],"names":[],"mappings":";;AAAA,MAAqB,UAAU;CAE9B;AAFD,6BAEC","sourcesContent":["export default class BaseSocket{\n     \n}"]}

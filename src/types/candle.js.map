@@ -1,0 +1,1 @@
+{"version":3,"file":"candle.js","sourceRoot":"","sources":["candle.ts"],"names":[],"mappings":";;AAQC,CAAC","sourcesContent":["export default interface Candle {\n    opentime: Date,\n    symbol: string,\n    open: string,\n    high: string,\n    low: string,\n    close: string,\n    volume: string\n};"]}
