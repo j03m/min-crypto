@@ -35,7 +35,7 @@ points in a map.
 This is then fed to the render which gives each indicator its own div in the report. (?) 
 
 
-### Stategies make decisions on indicators
+### Strategies make decisions on indicators
 
 Loaded from the strategies folder, the config indicates what strategies to use. Strategies in
 config is an array of arrays. Each sub array is anded, all arrays together are or-ed.

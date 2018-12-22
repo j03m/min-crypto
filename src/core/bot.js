@@ -3,6 +3,7 @@ import {ShouldBuyRSI} from "./rsi";
 
 const config = require("./config").default;
 const indicatorConfig = require("../indicators/indicator-config").default;
+const strategyConfig = require("../strategies/strategy-config").default;
 const bars = require("./bars");
 const BN = require("bignumber.js");
 const Advice = require("./advice");
@@ -29,7 +30,7 @@ const WAIT_TO_TRADE = config.waitToTrade;
 
 class Bot {
   constructor(client) {
-    this._data = [];
+    this._indicatorData = [];
     this._client = client;
     this._ws = client.ws;
     this._trades = {};
@@ -51,6 +52,7 @@ class Bot {
     }
 
     this._indicators = this._hydrateIndicators();
+    this._strategies = this._hydrateStrategies();
     this._indicatorHistory = new Map();
   }
 
@@ -67,6 +69,19 @@ class Bot {
   }
 
   /**
+   * Iterate over strategies and require them in. This will
+   * create an array of arrays of strategies.
+   */
+  _hydrateStrategies(){
+    return strategyConfig.map((entry) => {
+      return entry.map((strategyFile) => {
+        return require(`../strategies/${strategyFile}`).default;
+      });
+    });
+  }
+
+
+  /**
    * Indicator array's need to match the data in length
    * so here we init the history array to the lenght of data
    * retrieved at initial fetch
@@ -77,7 +92,7 @@ class Bot {
     this._indicators.forEach((indicator)=>{
       const result = indicator.generate(numbers);
       this._indicatorHistory.set(indicator.name,
-        this._data.map(() => {
+        this._indicatorData.map(() => {
           return result;
         }));
     });
@@ -134,7 +149,7 @@ class Bot {
   // }
 
   _getNumbers(){
-    const numbers = this._data.map((value) => {
+    const numbers = this._indicatorData.map((value) => {
       return value.toNumber()
     });
     return numbers;
@@ -173,33 +188,23 @@ class Bot {
     }
   }
 
+  _reduceStrategiesFor(method){
+    return this._strategies.reduce((acc, strategyArray) => {
+      const result = strategyArray.reduce((subAcc, strategyImpl) => {
+        return subAcc && strategyImpl[method](this._indicatorHistory, this._getNumbers());
+      }, true);
+      return acc || result;
+    }, false);
+  }
+
   generateAdvice() {
-    // //const bands = this._bollingerBands[this._bollingerBands.length - 1];
-    // const buy = Advice.hasBuySignal(this._lastValue, bands);
-    // const sell = Advice.hasSellSignal(this._lastValue, bands);
-    // const rsi = this._rsi[this._rsi.length-1];
-    // this._currentAdvice = {
-    //   buy: buy && RSI.ShouldBuy(rsi),
-    //   sell: sell && RSI.ShouldSell(rsi)
-    // };
-    //j03m todo: redo advice as generic
+    const buy = this._reduceStrategiesFor("shouldBuy");
+    const sell = this._reduceStrategiesFor("shouldSell");
     this._currentAdvice = {
-      buy: false,
-      sell: false
+      buy,
+      sell
     }
   }
-
-  shouldStopLoss() {
-    if (this._lastTrade !== undefined &&
-      this._lastTrade.side === "BUY") {
-      const price = BN(this._lastTrade.price);
-      if (this._lastValue.isLessThan(price)) {
-        return price.minus(this._lastValue).dividedBy(price).isGreaterThanOrEqualTo(STOP_PERCENT);
-      }
-    }
-    return false;
-  }
-
 
   async sendOrder(trade) {
     //j03m store here - render orders
@@ -336,19 +341,19 @@ class Bot {
 
     this._allCandles = response.slice();
     this._lastUpdateTime = response[0].opentime.getTime();
-    this._data = this.pluck(response, BAR_PROPERTY).map((value) => {
+    this._indicatorData = this.pluck(response, BAR_PROPERTY).map((value) => {
       return BN(value)
     });
 
     this._backFillIndicatorHistory();
-    return Promise.resolve(this._data);
+    return Promise.resolve(this._indicatorData);
   }
 
   //this would be interesting to do with a reaction
   updateDataSet(candle) {
     if (this.shouldMakeNewCandle(candle)) {
-      this._data.shift();
-      this._data.push(BN(candle[BAR_PROPERTY]));
+      this._indicatorData.shift();
+      this._indicatorData.push(BN(candle[BAR_PROPERTY]));
       this._allCandles.push(candle);
       this._handleIndicatorTick();
       this.generatePortfolioValues();
