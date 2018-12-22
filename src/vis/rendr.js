@@ -98,6 +98,7 @@ function processTemplate(template, history, valueHistory) {
   template = template.replace(/\"\%HODL\%\"/g, hodlValue);
   template = template.replace(/\"\%TRDED\%\"/g, tradeValue);
   template = template.replace(/\"\%ORIG\%\"/g, originalValue);
+  template = template.replace(/\"\%RSI\%\"/g, JSON.stringify(history.rsi));
 
   return template;
 }

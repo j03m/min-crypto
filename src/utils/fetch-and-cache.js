@@ -64,6 +64,7 @@ async function doFetch(dbClient, exchangeClient, maxBars, requestDelay){
         },
         handler: async (data) => {
             //insert each row into the db
+            console.log("writing...", data[0]);
             const insert = `INSERT INTO bars
                                     (   symbol,
                                         openTime,

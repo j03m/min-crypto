@@ -4,7 +4,9 @@
 <body>
 <!-- Plotly chart will be drawn inside this div -->
 <div id="plotly-bars"></div>
+<div id="plotly-rsi"></div>
 <div id="plotly-values"></div>
+
 <script>
 
   const dates = "%DATES%";
@@ -145,6 +147,30 @@
   };
 
 
+  var layoutRSI = {
+    dragmode: 'zoom',
+    margin: {
+      r: 10,
+      t: 25,
+      b: 40,
+      l: 60
+    },
+    showlegend: false,
+    xaxis: {
+      autorange: true,
+      domain: [0, 1],
+      range: ['"%START%"', '"%END%"'],
+      rangeslider: {range: ['"%START%"', '"%END%"']},
+      title: 'Date',
+      type: 'date'
+    },
+    yaxis: {
+      autorange: true,
+      domain: [0, 1],
+      type: 'linear'
+    }
+  };
+
   const hold = {
     x: "%VALUEDATES%",
     y: "%HODL%",
@@ -166,10 +192,19 @@
     line: {color: '#F29634'}
   };
 
+  const rsi = {
+    x: dates,
+    y: "%RSI%",
+    type: "scatter",
+    line: {color: '#C1FF3F'}
+  };
+
+
   const values = [hold, trade, orig];
 
   Plotly.plot('plotly-bars', data, layout);
   Plotly.plot('plotly-values', values, layoutValue);
+  Plotly.plot('plotly-rsi', [rsi], layoutRSI);
 </script>
 </body>
 </html>

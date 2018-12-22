@@ -1,6 +1,7 @@
 export enum BuySellStrategy {
     balanced = 0,
-    nibbleAndFlush = 1
+    nibbleAndFlush = 1,
+    allInAllOut = 2
 }
 
 
@@ -18,7 +19,11 @@ export interface Config {
     tick:number;
     buySeverity:number;
     sellSeverity:number;
-    buySellStategy:BuySellStrategy
+    buySellStategy:BuySellStrategy,
+    RSILow:number,
+    RSIHigh:number,
+    RSIOff:boolean,
+    BandsOff:boolean
 
 };
 
@@ -30,12 +35,16 @@ export default Object.freeze( {
     "barLen": 15,
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
-    "orderSize": 0.025,
+    "orderSize": 0.25,
     "stopPercent": 0.05,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
-    "buySeverity": "conservative",
+    "buySeverity": "aggressive",
     "sellSeverity": "conservative",
-    "buySellStategy": BuySellStrategy.nibbleAndFlush
+    "buySellStategy": BuySellStrategy.allInAllOut,
+    "RSIHigh": 30,
+    "RSILow": 40,
+    "RSIOff": true, //crap indictor, remains off
+    "BandsOff": false
 });

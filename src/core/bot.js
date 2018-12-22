@@ -1,14 +1,14 @@
 import {BuySellStrategy} from "./config";
+import {ShouldBuyRSI} from "./rsi";
 
 const config = require("./config").default;
+const indicatorConfig = require("../indicators/indicator-config").default;
 const bars = require("./bars");
-const bands = require("./bands");
 const BN = require("bignumber.js");
 const Advice = require("./advice");
 const Portfolio = require("./portfolio");
 const rendr = require("../vis/rendr");
 const moment = require("moment");
-
 
 //TODO switch current and asset. You BUY the ASSET ETH with the CURRENCY BTC
 
@@ -42,7 +42,6 @@ class Bot {
     this._originalPortfolio == new Portfolio({free: 0, locked: 0}, {free: 0, locked: 0});
     this._firstPortfolioUpdate = false;
     this._tradeCount = 0;
-    this._guide = [];
     this._allCandles = [];
     this._valueHistory = [];
     this._symbol = this._client.getSymbol(config.asset, config.currency);
@@ -50,14 +49,45 @@ class Bot {
       CURRENCY_TETHER = this._client.getSymbol(config.currency, config.tether);
       ASSET_TETHER = this._client.getSymbol(config.asset, config.tether);
     }
+
+    this._indicators = this._hydrateIndicators();
+    this._indicatorHistory = new Map();
   }
 
+  /**
+   * Iterates over the list of indicator files, requires them
+   * and sets them up by name
+   * @returns {*}
+   * @private
+   */
+  _hydrateIndicators(){
+    return indicatorConfig.map((indicatorFile) => {
+      return require(`../indicators/${indicatorFile}`).default;
+    });
+  }
+
+  /**
+   * Indicator array's need to match the data in length
+   * so here we init the history array to the lenght of data
+   * retrieved at initial fetch
+   * @private
+   */
+  _backFillIndicatorHistory(){
+    const numbers = this._getNumbers();
+    this._indicators.forEach((indicator)=>{
+      const result = indicator.generate(numbers);
+      this._indicatorHistory.set(indicator.name,
+        this._data.map(() => {
+          return result;
+        }));
+    });
+  }
 
   get history() {
     return {
       candles: this.candles,
-      bands: this.bands, //todo: refactor to be generic to the guide used.
-      trades: this.trades,
+      indicators: this._indicatorHistory,
+      trades: this.trades
     }
   }
 
@@ -72,7 +102,7 @@ class Bot {
 
   //history
   get bands() {
-    return this._guide;
+    return this._bollingerBands;
   }
 
   //history
@@ -96,23 +126,39 @@ class Bot {
     return this._pendingTrade;
   }
 
-  generateIndicators() {
+  // generateRSI(){
+  //   const numbers = this._getNumbers();
+  //   const value = RSI.generateRSI(numbers);
+  //   this._rsi.push(value);
+  //   return value;
+  // }
+
+  _getNumbers(){
     const numbers = this._data.map((value) => {
       return value.toNumber()
     });
-    const stdDev2 = bands.makeBand(numbers, PERIOD, 2);
-    const stdDev1 = bands.makeBand(numbers, PERIOD, 1);
-    const guide = bands.makeGuide(stdDev1, stdDev2);
-    this._guide.push(guide);
-    return guide;
+    return numbers;
   }
+
+  // generateBollingerBands() {
+  //   const numbers = this._getNumbers();
+  //   const stdDev2 = bands.makeBand(numbers, PERIOD, 2);
+  //   const stdDev1 = bands.makeBand(numbers, PERIOD, 1);
+  //   const guide = bands.makeGuide(stdDev1, stdDev2);
+  //   this._bollingerBands.push(guide);
+  //   return guide;
+  // }
 
   get advice() {
     return this._currentAdvice;
   }
 
   get buyOrderSize(){
+    if (config.buySellStategy === BuySellStrategy.allInAllOut) {
+      return this._portfolio.currency.free.dividedBy(this._lastValue);
+    }else{
       return ORDER_SIZE;
+    }
   }
 
   get sellOrderSize() {
@@ -121,30 +167,27 @@ class Bot {
     }
     else if (config.buySellStategy === BuySellStrategy.nibbleAndFlush){
       return this._portfolio.asset.free;
-    }else {
-      throw new Error("unrecognized strategy")
+    }
+    else if (config.buySellStategy === BuySellStrategy.allInAllOut){
+      return this._portfolio.asset.free;
     }
   }
 
   generateAdvice() {
-    const bands = this._guide[this._guide.length - 1];
-    const buy = Advice.hasBuySignal(this._lastValue, bands);
-    const sell = Advice.hasSellSignal(this._lastValue, bands);
-    const width = Advice.hasBandWidth(bands, this._guide);
-    if (width) {
-      //console.log("woo");
-    }
+    // //const bands = this._bollingerBands[this._bollingerBands.length - 1];
+    // const buy = Advice.hasBuySignal(this._lastValue, bands);
+    // const sell = Advice.hasSellSignal(this._lastValue, bands);
+    // const rsi = this._rsi[this._rsi.length-1];
+    // this._currentAdvice = {
+    //   buy: buy && RSI.ShouldBuy(rsi),
+    //   sell: sell && RSI.ShouldSell(rsi)
+    // };
+    //j03m todo: redo advice as generic
     this._currentAdvice = {
-      buy: buy && width,
-      sell: sell && width
-    };
+      buy: false,
+      sell: false
+    }
   }
-
-  //j03m - band width is terrible !
-
-  // record tests against scenarios manually
-
-  // finish render + history
 
   shouldStopLoss() {
     if (this._lastTrade !== undefined &&
@@ -297,11 +340,7 @@ class Bot {
       return BN(value)
     });
 
-    const guide = this.generateIndicators();
-    //pad out the guides to they are the same length as initial candles
-    this._guide = this._data.map(() => {
-      return guide;
-    });
+    this._backFillIndicatorHistory();
     return Promise.resolve(this._data);
   }
 
@@ -311,11 +350,25 @@ class Bot {
       this._data.shift();
       this._data.push(BN(candle[BAR_PROPERTY]));
       this._allCandles.push(candle);
-      this.generateIndicators();
+      this._handleIndicatorTick();
       this.generatePortfolioValues();
       return true;
     }
     return false;
+  }
+
+  /**
+   * Iterates over the indicators and
+   * generates their next tick data
+   * @private
+   */
+  _handleIndicatorTick(){
+    const numbers = this._getNumbers();
+    this._indicators.forEach((indicator)=>{
+      const result = indicator.generate(numbers);
+      const indicatorData = this._indicatorHistory.get(indicator.name);
+      indicatorData.push(result);
+    });
   }
 
 
@@ -467,7 +520,6 @@ class Bot {
     rendr.set(`original: ${this._originalValue}`);
 
     rendr.set(`current bar: ${moment(this._lastCandle.opentime)} total trades: ${this._tradeCount}`);
-    rendr.set(`current bar value: ${this._lastCandle[BAR_PROPERTY].toString()} vs ${this._guide[this._guide.length - 1].mid.toString()}`)
     rendr.set(`last trade: ${moment(this._lastTradeTime)} total trades: ${this._tradeCount}`);
   }
 }
