@@ -1,4 +1,5 @@
 const assert = require("assert");
+import BigNumber from "bignumber.js";
 import * as Enums from "../types/enums";
 
 export const unitMilliseconds = Object.freeze([
@@ -61,3 +62,10 @@ function strToIntervalValue(input:string):string{
     }else throw new Error("Invalid interval:" + input);
 }
 
+
+export function getNumbers(data:Array<BigNumber>){
+    const numbers = data.map((value) => {
+        return value.toNumber()
+    });
+    return numbers;
+}

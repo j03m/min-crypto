@@ -1,4 +1,6 @@
 const BN = require("bignumber.js");
+import {BigNumber} from "bignumber.js"
+import {getNumbers} from "../utils/util"
 const BandGenerator = require('technicalindicators').BollingerBands;
 
 export default {
@@ -7,10 +9,11 @@ export default {
 }
 
 
-function generate(data: Array<number>): QuadBand {
+function generate(data: Array<BigNumber>): QuadBand {
+    const numbers = getNumbers(data);
     return makeGuide(
-        makeBand(data, 20, 1),
-        makeBand(data, 20, 2)
+        makeBand(numbers, 20, 1),
+        makeBand(numbers, 20, 2)
     );
 }
 

@@ -30,7 +30,7 @@ const WAIT_TO_TRADE = config.waitToTrade;
 
 class Bot {
   constructor(client) {
-    this._indicatorData = [];
+    this._priceData = [];
     this._client = client;
     this._ws = client.ws;
     this._trades = {};
@@ -88,11 +88,10 @@ class Bot {
    * @private
    */
   _backFillIndicatorHistory(){
-    const numbers = this._getNumbers();
     this._indicators.forEach((indicator)=>{
-      const result = indicator.generate(numbers);
+      const result = indicator.generate(this._priceData);
       this._indicatorHistory.set(indicator.name,
-        this._indicatorData.map(() => {
+        this._priceData.map(() => {
           return result;
         }));
     });
@@ -148,12 +147,7 @@ class Bot {
   //   return value;
   // }
 
-  _getNumbers(){
-    const numbers = this._indicatorData.map((value) => {
-      return value.toNumber()
-    });
-    return numbers;
-  }
+
 
   // generateBollingerBands() {
   //   const numbers = this._getNumbers();
@@ -189,11 +183,12 @@ class Bot {
   }
 
   _reduceStrategiesFor(method){
-    return this._strategies.reduce((acc, strategyArray) => {
-      const result = strategyArray.reduce((subAcc, strategyImpl) => {
-        return subAcc && strategyImpl[method](this._indicatorHistory, this._getNumbers());
+    return this._strategies.reduce((previousStrategyResult, strategyArray) => {
+      const result = strategyArray.reduce((previousResult, strategyImpl) => {
+        const strategyResult = strategyImpl[method](this._indicatorHistory, this._priceData);
+        return previousResult && strategyResult;
       }, true);
-      return acc || result;
+      return previousStrategyResult || result;
     }, false);
   }
 
@@ -341,19 +336,19 @@ class Bot {
 
     this._allCandles = response.slice();
     this._lastUpdateTime = response[0].opentime.getTime();
-    this._indicatorData = this.pluck(response, BAR_PROPERTY).map((value) => {
+    this._priceData = this.pluck(response, BAR_PROPERTY).map((value) => {
       return BN(value)
     });
 
     this._backFillIndicatorHistory();
-    return Promise.resolve(this._indicatorData);
+    return Promise.resolve(this._priceData);
   }
 
   //this would be interesting to do with a reaction
   updateDataSet(candle) {
     if (this.shouldMakeNewCandle(candle)) {
-      this._indicatorData.shift();
-      this._indicatorData.push(BN(candle[BAR_PROPERTY]));
+      this._priceData.shift();
+      this._priceData.push(BN(candle[BAR_PROPERTY]));
       this._allCandles.push(candle);
       this._handleIndicatorTick();
       this.generatePortfolioValues();
@@ -368,9 +363,8 @@ class Bot {
    * @private
    */
   _handleIndicatorTick(){
-    const numbers = this._getNumbers();
     this._indicators.forEach((indicator)=>{
-      const result = indicator.generate(numbers);
+      const result = indicator.generate(this._priceData);
       const indicatorData = this._indicatorHistory.get(indicator.name);
       indicatorData.push(result);
     });
