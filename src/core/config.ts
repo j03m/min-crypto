@@ -21,9 +21,7 @@ export interface Config {
     sellSeverity:number;
     buySellStategy:BuySellStrategy,
     RSILow:number,
-    RSIHigh:number,
-    RSIOff:boolean,
-    BandsOff:boolean
+    RSIHigh:number
 
 };
 
@@ -36,7 +34,7 @@ export default Object.freeze( {
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
     "orderSize": 0.25,
-    "stopPercent": 0.05,
+    "stopPercent": 2,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
@@ -44,7 +42,5 @@ export default Object.freeze( {
     "sellSeverity": "conservative",
     "buySellStategy": BuySellStrategy.allInAllOut,
     "RSIHigh": 30,
-    "RSILow": 40,
-    "RSIOff": true, //crap indictor, remains off
-    "BandsOff": false
+    "RSILow": 40
 });

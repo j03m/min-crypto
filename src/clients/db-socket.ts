@@ -5,6 +5,7 @@ import Candle from "../types/candle";
 import BackTestOptions from "../types/back-test-options";
 import Update, {UpdateHandler} from "../types/update";
 import {Balance} from "../types/portfolio-types";
+import Order from "../types/order";
 interface handler {
     (candle:Candle):void
 }
@@ -75,7 +76,7 @@ export default class DBSocket implements BaseSocket{
             })
             console.log("TEST DONE"); //todo: maybe be a little less ham fisted?
             const p = new Promise(()=>{});
-            await p; //pause forever
+            return await p; //pause forever
         }
 
     }
@@ -89,11 +90,12 @@ export default class DBSocket implements BaseSocket{
         this._userCb(update);
     }
 
-    _sendExecution(asset:Balance, currency:Balance){
-        this._orders++;
+    _sendExecution(asset:Balance, currency:Balance, orderId:number, trade:Order){
         this._sendUserUpdate({
             eventType: "executionReport",
-            orderId: this._orders
+            eventTime: Date.now(),
+            orderId: orderId,
+            order: trade
         });
 
         this._sendUserUpdate({

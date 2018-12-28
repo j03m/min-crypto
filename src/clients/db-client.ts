@@ -15,6 +15,7 @@ export default class DBClient implements BaseClient {
     private _ws: DBSocket;
     private _mockPortfolio: any; //todo update
     private _initialBalance: AccountInfo;
+    private _orders: number;
     constructor(options: BackTestOptions){
         this._postGres = new Client({
             host: 'localhost',
@@ -37,11 +38,12 @@ export default class DBClient implements BaseClient {
     async order(trade:Order){
         //order should cause an execution report
         //followed by a portfolio update via the websocket
+        this._orders++;
         this._mockPortfolio.mockExecute(trade);
 
         //j03m when we do this, porfolio becomes all NaN
         return this._ws._sendExecution(this._mockPortfolio.asset,
-            this._mockPortfolio.currency);
+            this._mockPortfolio.currency, this._orders, trade);
 
     }
     openOrders(){

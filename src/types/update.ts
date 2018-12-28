@@ -1,18 +1,17 @@
 import OrderId from "./order-id";
 import {SymbolBalance} from "./portfolio-types";
+import Order from "./order";
 
 export default interface Update {
     eventType: string,
-    orderId: OrderId | number
+    eventTime: number,
+    orderId?: OrderId | number,
+    order?: Order
+    balances?: SymbolBalance
 }
 
 
-export interface AccountUpdate {
-    evenType:string,
-    eventTime:number,
-    balances: SymbolBalance
-}
 
 export interface UpdateHandler {
-    (update:Update | AccountUpdate):void
+    (update:Update):void
 }

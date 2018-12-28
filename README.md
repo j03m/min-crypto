@@ -43,6 +43,18 @@ config is an array of arrays. Each sub array is anded, all arrays together are o
 Strategies always receive all indictor history and all data history and then return a true/false for the shouldBuy/shouldSell APIS
 
 
+### Stops and Limits
+
+We're might end up paying fees on gdax if we aren't careful about how we enter orders. We should 
+check if GDAX responses tell us.  
+
+For stops, we have to put those in our selves SEPARATE From buy order. We also have to cancel them when we sell. 
+
+Algo for stops:
+
+* Enter a buy order, get an order ID, hold it in open orders
+* Open order is a recording of current open quantity and prices. I can have N of these
+* If current price causes any open order to have LOST N% we flush that order (this is our stop)
 
 
 

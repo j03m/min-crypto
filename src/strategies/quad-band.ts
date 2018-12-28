@@ -4,7 +4,7 @@ export default {
     name: "quad-band"
 }
 
-const Advice = require("../core/advice");
+const Advice = require("./advice");
 function shouldBuy(indicators:Map<string, Array<any>>, prices:Array<number>):boolean{
     const bandHistory = indicators.get("quad-band");
     if (bandHistory === undefined){

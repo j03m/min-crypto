@@ -1,4 +1,4 @@
-import Config from "./config";
+import Config from "../core/config";
 
 const {buySeverity, sellSeverity, BandsOff} = Config;
 const BN = require("bignumber.js");

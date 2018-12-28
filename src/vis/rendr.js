@@ -67,11 +67,11 @@ function processTemplate(template, history, valueHistory) {
   template = template.replace(/\"\%START\%\"/g, extractStart(history.candles));
   template = template.replace(/\"\%END\%\"/g, extractEnd(history.candles));
 
-  template = template.replace(/\"\%TOP\%\"/g, extractBand(history.bands, "top"));
-  template = template.replace(/\"\%HIGHBAND\%\"/g, extractBand(history.bands, "high"));
-  template = template.replace(/\"\%MID\%\"/g, extractBand(history.bands, "mid"));
-  template = template.replace(/\"\%LOWBAND\%\"/g, extractBand(history.bands, "low"));
-  template = template.replace(/\"\%BOTTOM\%\"/g, extractBand(history.bands, "bottom"));
+  template = template.replace(/\"\%TOP\%\"/g, extractBand(history.indicators.get("quad-band"), "top"));
+  template = template.replace(/\"\%HIGHBAND\%\"/g, extractBand(history.indicators.get("quad-band"), "high"));
+  template = template.replace(/\"\%MID\%\"/g, extractBand(history.indicators.get("quad-band"), "mid"));
+  template = template.replace(/\"\%LOWBAND\%\"/g, extractBand(history.indicators.get("quad-band"), "low"));
+  template = template.replace(/\"\%BOTTOM\%\"/g, extractBand(history.indicators.get("quad-band"), "bottom"));
 
   const buys = extractTrades(history.candles, history.trades, "BUY", dates);
   template = template.replace(/\"\%BUYS\%\"/g, buys);
