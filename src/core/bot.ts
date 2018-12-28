@@ -290,7 +290,7 @@ class Bot {
         let quantity:BigNumber = BN(trade.quantity);
         const removals:Set = new Set();
         for(let position of this.positions){
-            if (quantity.equals(0)){
+            if (quantity.isEqualTo(0)){
                 break;
             }
             else if (position.quantity.isGreaterThanOrEqualTo(quantity)){
