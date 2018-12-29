@@ -1,9 +1,9 @@
 process.on('unhandledRejection', up => { throw up });
 import DBClient from "../clients/db-client";
 const moment = require("moment")
-const testStart = moment(new Date(2018, 11, 9));
+const testStart = moment(new Date(2018, 10, 5));
 const testEnd = testStart.clone();
-testEnd.add(1, "d");
+testEnd.add(40, "d");
 const backTestParams = {
     testStart: testStart.valueOf(),
     testEnd: testEnd.valueOf(),

@@ -34,12 +34,12 @@ export default Object.freeze( {
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
     "orderSize": 0.25,
-    "stopPercent": 2,
+    "stopPercent": 1,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
-    "buySeverity": "aggressive",
-    "sellSeverity": "conservative",
+    "buySeverity": "midline",
+    "sellSeverity": "midline",
     "buySellStategy": BuySellStrategy.allInAllOut,
     "RSIHigh": 30,
     "RSILow": 40

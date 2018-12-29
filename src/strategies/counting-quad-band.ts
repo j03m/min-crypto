@@ -1,23 +1,26 @@
 export default {
     shouldBuy,
     shouldSell,
-    name: "quad-band"
+    name: "counting-quad-band"
 }
 
-const bars = 3;
+import BigNumber from "bignumber.js";
+
+const barsBuy = 3;
+const barsSell = 2;
 
 const Advice = require("./advice");
-function shouldBuy(indicators:Map<string, Array<any>>, prices:Array<number>):boolean{
+function shouldBuy(indicators:Map<string, Array<any>>, prices:Array<BigNumber>):boolean{
     const bandHistory = indicators.get("quad-band");
     if (bandHistory === undefined || bandHistory.length <=0){
         console.log("quad-band strategy requires the quad-band indicator", bandHistory);
         throw new Error("quad-band strategy requires the quad-band indicator");
     }
 
-    return determineSignal(prices, bandHistory, "hasBuySignal");
+    return determineSignal(prices, bandHistory, "hasBuySignal", barsBuy);
 }
 
-function determineSignal(prices:Array<number>, bandHistory:Array<any>, method:string): boolean{
+function determineSignal(prices:Array<BigNumber>, bandHistory:Array<any>, method:string, bars:number): boolean{
     const start = bandHistory.length -1;
     const end = start - bars;
     if (end < 0){
@@ -32,12 +35,12 @@ function determineSignal(prices:Array<number>, bandHistory:Array<any>, method:st
     return result;
 }
 
-function shouldSell(indicators:Map<string, Array<any>>, prices:Array<number>):boolean{
+function shouldSell(indicators:Map<string, Array<any>>, prices:Array<BigNumber>):boolean{
     const bandHistory = indicators.get("quad-band");
     if (bandHistory === undefined || bandHistory.length <=0){
         console.log("quad-band strategy requires the quad-band indicator", bandHistory);
         throw new Error("quad-band strategy requires the quad-band indicator");
     }
 
-    return determineSignal(prices, bandHistory, "hasSellSignal");
+    return determineSignal(prices, bandHistory, "hasSellSignal", barsSell);
 }

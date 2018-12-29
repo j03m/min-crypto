@@ -4,5 +4,5 @@
  */
 
 export default [
-    ["counting-quad-band"]
+    ["trending-quad-band"]
 ]

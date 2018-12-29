@@ -117,6 +117,10 @@ class Bot {
         return this._allCandles;
     }
 
+    get prices() {
+        return this._allCandles.map((candle)=>{ return BN(candle[BAR_PROPERTY])});
+    }
+
     //history
     get bands() {
         return this._bollingerBands;
@@ -185,7 +189,8 @@ class Bot {
     _reduceStrategiesFor(method) {
         return this._strategies.reduce((previousStrategyResult, strategyArray) => {
             const result = strategyArray.reduce((previousResult, strategyImpl) => {
-                const strategyResult = strategyImpl[method](this._indicatorHistory, this._priceData);
+
+                const strategyResult = strategyImpl[method](this._indicatorHistory, this.prices);
                 return previousResult && strategyResult;
             }, true);
             return previousStrategyResult || result;
