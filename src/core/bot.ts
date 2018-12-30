@@ -84,12 +84,14 @@ class Bot {
      * Iterate over strategies and require them in. This will
      * create an array of arrays of strategies.
      */
-    _hydrateStrategies(): Array<Strategy> {
-        return strategyConfig.map((entry:Array<string>) => {
-            return entry.map((strategyFile) => {
-                return require(`../strategies/${strategyFile}`).default;
-            });
-        });
+    _hydrateStrategies(): Map<string,Strategy> {
+        return strategyConfig.reduce((strategyMap:Map<string,Strategy>, entry:Array<string>):Map<string,Strategy> => {
+            return entry.reduce((strategyMapInner:Map<string,Strategy>, strategyFile:string):Map<string,Strategy> => {
+                const strategy:Strategy = require(`../strategies/${strategyFile}`).default;
+                strategyMapInner.set(strategy.name, strategy);
+                return strategyMapInner
+            }, strategyMap);
+        }, new Map<string, Strategy>())
     }
 
 
