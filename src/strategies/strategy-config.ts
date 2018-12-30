@@ -4,5 +4,5 @@
  */
 
 export default [
-    ["counting-quad-band", "psar"]
+    ["quad-band", "psar"]
 ]

@@ -205,7 +205,7 @@ class Bot {
                     throw new Error(`Cannot find strategy ${name}`);
                 }
                 const strategyImpl:StrategyApi = strategy[method] as StrategyApi;
-                return strategyImpl(this.indicatorHistory, this.allCandles);
+                return subAccumulator && strategyImpl(this.indicatorHistory, this.allCandles);
             }, true);
         }, false);
     }
