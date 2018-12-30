@@ -1,7 +1,12 @@
 import Candle from "./candle";
 
+export interface StrategyApi {
+    (indicatorMap:Map<string, Array<any>>, prices:Array<Candle>):boolean
+}
+
 export default interface Strategy {
+    [index:string]: string| StrategyApi,
     name:string,
-    shouldBuy:(indicatorMap:Map<string, Array<any>>, prices:Array<Candle>) => boolean,
-    shouldSell:(indicatorMap:Map<string, Array<any>>, prices:Array<Candle>) => boolean,
+    shouldBuy: StrategyApi,
+    shouldSell:StrategyApi,
 }

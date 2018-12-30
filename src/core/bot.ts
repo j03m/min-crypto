@@ -3,7 +3,7 @@ import Position from "../types/position";
 import Order from "../types/order";
 import BigNumber from "bignumber.js";
 import Indicator from "../types/indicator";
-import Strategy from "../types/strategy";
+import Strategy, {StrategyApi} from "../types/strategy";
 import BaseClient from "../clients/base-client";
 import BaseSocket from "../clients/base-socket";
 import Candle from "../types/candle";
@@ -37,7 +37,7 @@ const assert = require("assert");
 class Bot {
     positions: Set<Position>;
     indicators: Array<Indicator>;
-    strategies: Array<Strategy>;
+    strategies: Map<string, Strategy>;
     indicatorHistory: Map<string, Array<any>>;
     client:BaseClient;
     ws: BaseSocket;
@@ -126,9 +126,6 @@ class Bot {
         return this.allCandles;
     }
 
-    get prices() {
-        return this.allCandles.map((candle)=>{ return BN(candle[BAR_PROPERTY])});
-    }
 
     //history
     get bands() {
@@ -195,14 +192,19 @@ class Bot {
         }
     }
 
-    _reduceStrategiesFor(method) {
-        return this.strategies.reduce((previousStrategyResult, strategyArray) => {
-            const result = strategyArray.reduce((previousResult, strategyImpl) => {
-
-                const strategyResult = strategyImpl[method](this.indicatorHistory, this.prices);
-                return previousResult && strategyResult;
+    _reduceStrategiesFor(method:string) {
+        //iterate over the strategies in the config, each of which is
+        //an array of names. If any array's ORed together are true, the whole thing is true
+        return strategyConfig.reduce((accumulator:boolean, arrayOfStrategies:Array<string>) => {
+            //strategies are ANDed together in a given array of names.
+            return accumulator || arrayOfStrategies.reduce((subAccumulator: boolean, name:string):boolean => {
+                const strategy:Strategy|undefined = this.strategies.get(name);
+                if (strategy === undefined){
+                    throw new Error(`Cannot find strategy ${name}`);
+                }
+                const strategyImpl:StrategyApi = strategy[method] as StrategyApi;
+                return strategyImpl(this.indicatorHistory, this.allCandles);
             }, true);
-            return previousStrategyResult || result;
         }, false);
     }
 
@@ -380,7 +382,7 @@ class Bot {
     }
 
     //this would be interesting to do with a reaction
-    updateDataSet(candle) {
+    updateDataSet(candle: Candle) {
         if (this.shouldMakeNewCandle(candle)) {
             this.allCandles.push(candle);
             this._handleIndicatorTick();
