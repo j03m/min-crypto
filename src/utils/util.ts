@@ -1,3 +1,5 @@
+import Candle from "../types/candle";
+
 const assert = require("assert");
 import BigNumber from "bignumber.js";
 import * as Enums from "../types/enums";
@@ -68,4 +70,25 @@ export function getNumbers(data:Array<BigNumber>){
         return value.toNumber()
     });
     return numbers;
+}
+
+export function getBigNumbers(data:Array<string>){
+    return data.map((entry:number|string) => {
+        return new BigNumber(entry);
+    });
+}
+
+export function getBigNumbersFromCandle(data:Array<Candle>, prop:string){
+    return getBigNumbers(getProperty(data,prop));
+}
+
+export function getNumbersFromCandle(data:Array<Candle>, prop:string){
+    return getNumbers(getBigNumbers(getProperty(data, prop)));
+}
+
+export function getProperty(data:Array<Candle>, prop:string){
+    const props:Array<string> = data.map((candle:Candle) => {
+        return candle[prop];
+    }) as Array<string>;
+    return props;
 }

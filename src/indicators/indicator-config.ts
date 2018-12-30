@@ -1,3 +1,3 @@
 export default Object.freeze([
-    "quad-band"
+    "quad-band", "psar"
 ]);

@@ -1,4 +1,5 @@
 import config from "../core/config";
+import Candle from "../types/candle";
 
 export default {
     shouldBuy,
@@ -6,7 +7,7 @@ export default {
     name: "rsi"
 }
 
-function shouldBuy(indicators:Map<string, Array<any>>, prices:Array<number>):boolean{
+function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const rsiHistory = indicators.get("rsi");
     if (rsiHistory === undefined){
         throw new Error("rsi strategy requires the rsi indicator");
@@ -19,7 +20,7 @@ function shouldBuy(indicators:Map<string, Array<any>>, prices:Array<number>):boo
     }
 }
 
-function shouldSell(indicators:Map<string, Array<any>>, prices:Array<number>):boolean{
+function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const rsiHistory = indicators.get("rsi");
     if (rsiHistory === undefined){
         throw new Error("rsi strategy requires the rsi indicator");

@@ -1,5 +1,5 @@
-import {BigNumber} from "bignumber.js";
+import Candle from "./candle";
 export default interface Indicator {
     name: string,
-    generator:(input:Array<BigNumber>) => Array<any>
+    generate:(input:Array<Candle>) => Array<any>
 };

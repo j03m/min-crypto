@@ -2,6 +2,11 @@ import {BuySellStrategy} from "./config";
 import Position from "../types/position";
 import Order from "../types/order";
 import BigNumber from "bignumber.js";
+import Indicator from "../types/indicator";
+import Strategy from "../types/strategy";
+import BaseClient from "../clients/base-client";
+import BaseSocket from "../clients/base-socket";
+import Candle from "../types/candle";
 
 const BN = BigNumber;
 const config = require("./config").default;
@@ -30,12 +35,16 @@ const WAIT_TO_TRADE = config.waitToTrade;
 const assert = require("assert");
 
 class Bot {
-    positions: Set<Position>
-
-    constructor(client) {
-        this._priceData = [];
-        this._client = client;
-        this._ws = client.ws;
+    positions: Set<Position>;
+    indicators: Array<Indicator>;
+    strategies: Array<Strategy>;
+    indicatorHistory: Map<string, Array<any>>;
+    client:BaseClient;
+    ws: BaseSocket;
+    allCandles:Array<Candle>;
+    constructor(client: BaseClient) {
+        this.client = client;
+        this.ws = client.ws;
         this._trades = {};
         this._initComplete = false;
         this._lastValue = -1;
@@ -46,17 +55,17 @@ class Bot {
         this._originalPortfolio == new Portfolio({free: 0, locked: 0}, {free: 0, locked: 0});
         this._firstPortfolioUpdate = false;
         this._tradeCount = 0;
-        this._allCandles = [];
+        this.allCandles = [];
         this._valueHistory = [];
-        this._symbol = this._client.getSymbol(config.asset, config.currency);
+        this._symbol = this.client.getSymbol(config.asset, config.currency);
         if (config.requiresTether) {
-            CURRENCY_TETHER = this._client.getSymbol(config.currency, config.tether);
-            ASSET_TETHER = this._client.getSymbol(config.asset, config.tether);
+            CURRENCY_TETHER = this.client.getSymbol(config.currency, config.tether);
+            ASSET_TETHER = this.client.getSymbol(config.asset, config.tether);
         }
         this.positions = new Set<Position>();
-        this._indicators = this._hydrateIndicators();
-        this._strategies = this._hydrateStrategies();
-        this._indicatorHistory = new Map();
+        this.indicators = this._hydrateIndicators();
+        this.strategies = this._hydrateStrategies();
+        this.indicatorHistory = new Map<string, Array<any>>();
     }
 
     /**
@@ -65,8 +74,8 @@ class Bot {
      * @returns {*}
      * @private
      */
-    _hydrateIndicators() {
-        return indicatorConfig.map((indicatorFile) => {
+    _hydrateIndicators(): Array<Indicator> {
+        return indicatorConfig.map((indicatorFile:string) => {
             return require(`../indicators/${indicatorFile}`).default;
         });
     }
@@ -75,8 +84,8 @@ class Bot {
      * Iterate over strategies and require them in. This will
      * create an array of arrays of strategies.
      */
-    _hydrateStrategies() {
-        return strategyConfig.map((entry) => {
+    _hydrateStrategies(): Array<Strategy> {
+        return strategyConfig.map((entry:Array<string>) => {
             return entry.map((strategyFile) => {
                 return require(`../strategies/${strategyFile}`).default;
             });
@@ -91,10 +100,10 @@ class Bot {
      * @private
      */
     _backFillIndicatorHistory() {
-        this._indicators.forEach((indicator) => {
-            const result = indicator.generate(this._priceData);
-            this._indicatorHistory.set(indicator.name,
-                this._priceData.map(() => {
+        this.indicators.forEach((indicator:Indicator) => {
+            const result = indicator.generate(this.allCandles);
+            this.indicatorHistory.set(indicator.name,
+                this.allCandles.map(() => {
                     return result;
                 }));
         });
@@ -103,7 +112,7 @@ class Bot {
     get history() {
         return {
             candles: this.candles,
-            indicators: this._indicatorHistory,
+            indicators: this.indicatorHistory,
             trades: this.trades
         }
     }
@@ -114,11 +123,11 @@ class Bot {
 
     //history
     get candles() {
-        return this._allCandles;
+        return this.allCandles;
     }
 
     get prices() {
-        return this._allCandles.map((candle)=>{ return BN(candle[BAR_PROPERTY])});
+        return this.allCandles.map((candle)=>{ return BN(candle[BAR_PROPERTY])});
     }
 
     //history
@@ -187,10 +196,10 @@ class Bot {
     }
 
     _reduceStrategiesFor(method) {
-        return this._strategies.reduce((previousStrategyResult, strategyArray) => {
+        return this.strategies.reduce((previousStrategyResult, strategyArray) => {
             const result = strategyArray.reduce((previousResult, strategyImpl) => {
 
-                const strategyResult = strategyImpl[method](this._indicatorHistory, this.prices);
+                const strategyResult = strategyImpl[method](this.indicatorHistory, this.prices);
                 return previousResult && strategyResult;
             }, true);
             return previousStrategyResult || result;
@@ -209,7 +218,7 @@ class Bot {
     async sendOrder(trade) {
         //j03m store here - render orders
         let response;
-        response = await this._client.order(trade);
+        response = await this.client.order(trade);
         this._trades[trade.when.getTime()] = trade;
         this._lastResponse = response;
         this._lastTrade = trade;
@@ -219,12 +228,12 @@ class Bot {
     }
 
     async cancelOpenOrders() {
-        const openOrders = await this._client.openOrders({
+        const openOrders = await this.client.openOrders({
             symbol: this._symbol
         });
         for (let i = 0; i < openOrders.length; i++) {
             const orderId = openOrders[i].orderId;
-            await this._client.cancelOrder({
+            await this.client.cancelOrder({
                 symbol: this._symbol,
                 orderId: orderId
             });
@@ -317,7 +326,7 @@ class Bot {
     }
 
     async fetchPortfolio() {
-        const result = await this._client.accountInfo();
+        const result = await this.client.accountInfo();
         this.initPortfolio(result.balances);
     }
 
@@ -355,7 +364,7 @@ class Bot {
 
         const response = await bars.fetchCandles({
             fetchAction: async (request) => {
-                return await this._client.candles(request);
+                return await this.client.candles(request);
             },
             symbol: this._symbol,
             interval: BAR_LEN + "m",
@@ -364,22 +373,16 @@ class Bot {
             maxBars: PERIOD
         });
 
-        this._allCandles = response.slice();
+        this.allCandles = response.slice();
         this._lastUpdateTime = response[0].opentime.getTime();
-        this._priceData = this.pluck(response, BAR_PROPERTY).map((value) => {
-            return BN(value)
-        });
-
         this._backFillIndicatorHistory();
-        return Promise.resolve(this._priceData);
+        return Promise.resolve(this.allCandles);
     }
 
     //this would be interesting to do with a reaction
     updateDataSet(candle) {
         if (this.shouldMakeNewCandle(candle)) {
-            this._priceData.shift();
-            this._priceData.push(BN(candle[BAR_PROPERTY]));
-            this._allCandles.push(candle);
+            this.allCandles.push(candle);
             this._handleIndicatorTick();
             this.generatePortfolioValues();
             return true;
@@ -393,15 +396,18 @@ class Bot {
      * @private
      */
     _handleIndicatorTick() {
-        this._indicators.forEach((indicator) => {
-            const result = indicator.generate(this._priceData);
-            const indicatorData = this._indicatorHistory.get(indicator.name);
+        this.indicators.forEach((indicator) => {
+            const result = indicator.generate(this.allCandles);
+            const indicatorData:Array<any>|undefined = this.indicatorHistory.get(indicator.name);
+            if (indicatorData === undefined){
+                throw new Error(`Invalid config, can't find: ${indicator.name}`);
+            }
             indicatorData.push(result);
         });
     }
 
 
-    shouldMakeNewCandle(candle) {
+    shouldMakeNewCandle(candle:Candle) {
         //is the time of this candle a significant time from our last
         if (candle.opentime.getTime() - this._lastUpdateTime >= 1000 * 60 * BAR_LEN) {
             this._lastUpdateTime = candle.opentime.getTime();
@@ -495,7 +501,7 @@ class Bot {
         //listen, get a tick
         rendr.web(this); //kick off the web server
         return new Promise((f, r) => {
-            this._ws.candles(this._symbol, TICK_LEN + 'm', async candle => {
+            this.ws.candles(this._symbol, TICK_LEN + 'm', async candle => {
                 if (this.initComplete) {
                     this._lastValue = BN(candle[BAR_PROPERTY]);
                     this._lastCandle = candle;
@@ -511,14 +517,14 @@ class Bot {
             //goal is still working with binance but not messing up gdax
             if (config.requiresTether) {
                 //get USDT for ASSET
-                this._ws.candles(ASSET_TETHER, TICK_LEN + "m", (candle) => {
+                this.ws.candles(ASSET_TETHER, TICK_LEN + "m", (candle) => {
                     this._lastAssetTether = BN(candle[BAR_PROPERTY]);
                     if (this._lastCurrencyTether !== undefined) {
                         this._render();
                     }
                 });
 
-                this._ws.candles(CURRENCY_TETHER, TICK_LEN + "m", (candle) => {
+                this.ws.candles(CURRENCY_TETHER, TICK_LEN + "m", (candle) => {
                     this._lastCurrencyTether = BN(candle[BAR_PROPERTY]);
                     if (this._lastAssetTether) {
                         this._render();
@@ -526,7 +532,7 @@ class Bot {
                 });
             }
 
-            this._ws.user((msg) => {
+            this.ws.user((msg) => {
                 if (msg.eventType === "account") {
                     //update portfolio?
                     if (msg.balances) {

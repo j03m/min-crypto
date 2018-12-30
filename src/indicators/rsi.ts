@@ -1,14 +1,16 @@
+import Candle from "../types/candle";
+
 const RSI = require('technicalindicators').RSI;
-import {getNumbers} from "../utils/util";
+import {getBigNumbers, getNumbers, getProperty} from "../utils/util";
 import BigNumber from "bignumber.js";
 
 export default {
     generate,
     name: "rsi"
 }
-
-function generate(data:Array<BigNumber>):number{
-    const numbers = getNumbers(data);
-    const values = RSI.calculate({ values: numbers, period: 14 });
+const period = 14;
+function generate(data:Array<Candle>):number{
+    const numbers = getNumbers(getBigNumbers(getProperty(data, "close")));
+    const values = RSI.calculate({ values: numbers.slice(period * -1), period: period });
     return values[values.length -1];
 }

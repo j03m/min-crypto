@@ -1,19 +1,21 @@
+import Candle from "../types/candle";
+
 const BN = require("bignumber.js");
 import {BigNumber} from "bignumber.js"
-import {getNumbers} from "../utils/util"
+import {getNumbers, getProperty, getBigNumbers} from "../utils/util"
 const BandGenerator = require('technicalindicators').BollingerBands;
-
+const period = 20;
 export default {
     generate,
     name: "quad-band"
 }
 
 
-function generate(data: Array<BigNumber>): QuadBand {
-    const numbers = getNumbers(data);
+function generate(data: Array<Candle>): QuadBand {
+    const numbers = getNumbers(getBigNumbers(getProperty(data, "close")));
     return makeGuide(
-        makeBand(numbers, 20, 1),
-        makeBand(numbers, 20, 2)
+        makeBand(numbers.slice(period * -1), period, 1),
+        makeBand(numbers.slice(period * -1), period, 2)
     );
 }
 
