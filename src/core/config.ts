@@ -4,7 +4,6 @@ export enum BuySellStrategy {
     allInAllOut = 2
 }
 
-
 export interface Config {
     currency:string;
     asset:string;
@@ -17,16 +16,14 @@ export interface Config {
     tether: string; //remove me
     barProperty: string;
     tick:number;
-    buySeverity:number;
-    sellSeverity:number;
     buySellStategy:BuySellStrategy,
-    RSILow:number,
-    RSIHigh:number,
     decimalPlaces: number
+    strategies:Array<Array<string>>
+    indicators:Array<string>
 
 };
 
-export default Object.freeze( {
+const config:Config = {
     "currency": "USD",
     "asset": "ETH",
     "period": 20,
@@ -39,10 +36,12 @@ export default Object.freeze( {
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
-    "buySeverity": "conservative",
-    "sellSeverity": "aggressive",
     "buySellStategy": BuySellStrategy.nibbleAndFlush,
-    "RSIHigh": 60,
-    "RSILow": 15,
-    decimalPlaces: 5
-});
+    "decimalPlaces": 5,
+    "strategies":[["tracking-quad-band", "atr"]],
+    "indicators":[
+        "quad-band", "psar", "atr"
+    ]
+};
+
+export default Object.freeze(config) as Config;

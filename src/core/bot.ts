@@ -10,8 +10,8 @@ import Candle from "../types/candle";
 
 const BN = BigNumber;
 const config = require("./config").default;
-const indicatorConfig = require("../indicators/indicator-config").default;
-const strategyConfig = require("../strategies/strategy-config").default;
+const indicatorConfig = config.indicators;
+const strategyConfig =  config.strategies;
 const bars = require("./bars");
 
 const Portfolio = require("./portfolio");

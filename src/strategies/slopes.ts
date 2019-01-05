@@ -64,6 +64,8 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
     if(slope > buyMaxDecent){
         return true;
     }
+
+    return false;
 }
 
 function getTrend(slope: number):Trend{

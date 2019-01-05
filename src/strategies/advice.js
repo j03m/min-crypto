@@ -1,6 +1,7 @@
-import Config from "../core/config";
 
-const {buySeverity, sellSeverity, BandsOff} = Config;
+const buySeverity =  "conservative";
+const sellSeverity = "conservative";
+const BandsOff = false;
 const BN = require("bignumber.js");
 
 
@@ -49,7 +50,7 @@ class Advice {
   /**
    * For an aggressive buyer (buy often), we buy anytime we are at more below hold
    * @param {number[]} last
-   * @param {OrderSpec} spec
+   * @param {OrderS`pec} spec
    */
   static hasAggressiveBuySignal(last, spec) {
     return last.isLessThanOrEqualTo(spec.mid);
