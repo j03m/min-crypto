@@ -9,8 +9,8 @@ export default {
 import BigNumber from "bignumber.js";
 import {getBigNumbersFromCandle} from "../utils/util";
 
-const barsBuy = 3;
-const barsSell = 2;
+const barsBuy = 2;
+const barsSell = 1;
 
 const Advice = require("./advice");
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{

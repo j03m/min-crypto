@@ -177,8 +177,22 @@ class Bot {
     }
 
     get buyOrderSize() {
+
         if (config.buySellStategy === BuySellStrategy.allInAllOut) {
-            return this._portfolio.currency.free.dividedBy(this._lastValue);
+            let decimalPlaces = config.decimalPlaces;
+            let free = this._portfolio.currency.free;
+            let check = this._portfolio.currency.free.plus(1);
+            let orderSize;
+            //joe what are you doing here?
+            //well, I found that (value/price) * price != value :/ yay computers.
+            //so I check if the result is greater then free and increase decimal places until it is
+            do{
+                check = free.dividedBy(this._lastValue).decimalPlaces(decimalPlaces).times(this._lastValue);
+                orderSize = free.dividedBy(this._lastValue).decimalPlaces(decimalPlaces);
+                decimalPlaces++;
+            }while(check.isGreaterThan(free));
+            assert(orderSize !== undefined);
+            return orderSize;
         } else {
             return ORDER_SIZE;
         }

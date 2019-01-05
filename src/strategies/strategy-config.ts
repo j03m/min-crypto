@@ -4,5 +4,5 @@
  */
 
 export default [
-    ["quad-band", "psar"]
+    ["tracking-quad-band"]
 ]

@@ -72,6 +72,7 @@ function processTemplate(template, history, valueHistory) {
   template = template.replace(/\"\%MID\%\"/g, extractBand(history.indicators.get("quad-band"), "mid"));
   template = template.replace(/\"\%LOWBAND\%\"/g, extractBand(history.indicators.get("quad-band"), "low"));
   template = template.replace(/\"\%BOTTOM\%\"/g, extractBand(history.indicators.get("quad-band"), "bottom"));
+  template = template.replace(/\"\%OTHER\%\"/g, JSON.stringify(history.indicators.get("psar")));
 
   const buys = extractTrades(history.candles, history.trades, "BUY", dates);
   template = template.replace(/\"\%BUYS\%\"/g, buys);

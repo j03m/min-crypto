@@ -58,4 +58,14 @@ Algo for stops:
 
 
 
+Notes: 
 
+Quad band alone beats a down market, but doesn't make money in an up market because 
+there are fewer dips below the conservative lower band - think s+p 500 along the top of 
+the top bands for years...
+
+we spent alot of time trying to make money by picking the bottom of the crashes using 
+band width - this failed. Using a good stop loss performed better. Though, we did make
+money in a down market using ATR but not much. 
+
+Could we decided direction, and adjust from ATR to aggressive quad band or HODL on the fly?

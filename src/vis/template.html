@@ -4,7 +4,6 @@
 <body>
 <!-- Plotly chart will be drawn inside this div -->
 <div id="plotly-bars"></div>
-<div id="plotly-rsi"></div>
 <div id="plotly-values"></div>
 
 <script>
@@ -39,6 +38,13 @@
     type: "scatter",
     line: {color: '#4286f4'}
   };
+
+  const other = {
+    x: dates,
+    y: "%OTHER%",
+    type: "scatter",
+    line: {color: '#F286f4'}
+  }
 
   const high = {
       x: dates,
@@ -94,7 +100,7 @@
   };
 
 
-  var data = [candles, highest, high, mid, low, bottom, buys, sells];
+  var data = [candles, highest, high, mid, low, bottom, buys, sells, other];
   //var data = [candles, highest, mid, bottom];
 
 
@@ -204,7 +210,6 @@
 
   Plotly.plot('plotly-bars', data, layout);
   Plotly.plot('plotly-values', values, layoutValue);
-  Plotly.plot('plotly-rsi', [rsi], layoutRSI);
 </script>
 </body>
 </html>
