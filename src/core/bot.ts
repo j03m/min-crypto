@@ -7,6 +7,7 @@ import Strategy, {StrategyApi} from "../types/strategy";
 import BaseClient from "../clients/base-client";
 import BaseSocket from "../clients/base-socket";
 import Candle from "../types/candle";
+import strategy from "../types/strategy";
 
 const BN = BigNumber;
 const config = require("./config").default;
@@ -233,7 +234,7 @@ class Bot {
         }
     }
 
-    async sendOrder(trade) {
+    async sendOrder(trade:Order) {
         //j03m store here - render orders
         let response;
         response = await this.client.order(trade);
@@ -241,8 +242,17 @@ class Bot {
         this._lastResponse = response;
         this._lastTrade = trade;
         this._lastTradeTime = this._lastCandle.opentime;
-        return response;
 
+        this.informStrategies(trade);
+        return response;
+    }
+
+    informStrategies(trade:Order):void{
+        for(let strategy of this.strategies.values()){
+            if (typeof strategy.orderPlaced === "function"){
+                strategy.orderPlaced(trade);
+            }
+        }
     }
 
     async cancelOpenOrders() {

@@ -38,7 +38,7 @@ const config:Config = {
     "tick": 0,
     "buySellStategy": BuySellStrategy.nibbleAndFlush,
     "decimalPlaces": 5,
-    "strategies":[["tracking-quad-band", "atr"]],
+    "strategies":[["quad-band"]],
     "indicators":[
         "quad-band", "psar", "atr"
     ]
