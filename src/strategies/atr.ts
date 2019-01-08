@@ -7,7 +7,7 @@ export default {
 }
 
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
-    return range(indicators, candles, 2);
+    return range(indicators, candles, 20);
 }
 
 function range(indicators:Map<string, Array<any>>, candles:Array<Candle>, range: number):boolean {
@@ -23,7 +23,7 @@ function range(indicators:Map<string, Array<any>>, candles:Array<Candle>, range:
 }
 
 function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
-    return range(indicators, candles, 1.5);
+    return range(indicators, candles, 5);
 }
 
 //todo: create a new strategy - that is ATR out of range

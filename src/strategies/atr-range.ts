@@ -26,7 +26,7 @@ function outOfRange(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     const diff = Math.abs(avg - currentAtr) / avg;
     const percent = diff * 100;
 
-    if (percent >= 25){
+    if (percent >= 40){
         return true;
     }
     return false

@@ -13,7 +13,8 @@ import {QuadBand} from "../indicators/quad-band";
 
 //todo: change the criteria for a conservative buy vs aggressive buy
 //we should be above the midline longer for aggressive buys
-const conservativeBuys = 10;
+const conservativeBuys = 5;
+const aggressiveBuys = 10;
 
 let lastBuyStage:Stage|undefined;
 
@@ -25,14 +26,17 @@ enum Stage {
     aboveTopLine = 4
 }
 
+//don't use this - use trend-avisor with this instead (does a better job - we like low buys)
 function isConservativeBuySafe(lastCandle:Candle, lastBand:QuadBand):boolean {
-    const closeBn = new BigNumber(lastCandle.close);
-    //if the close is less then mid buy above the bottom
-    return closeBn.isLessThanOrEqualTo(lastBand.low) &&
-        closeBn.isGreaterThanOrEqualTo(lastBand.bottom);
+    return true;
+    // const closeBn = new BigNumber(lastCandle.close);
+    // //if the close is less then mid buy above the bottom
+    // return closeBn.isLessThanOrEqualTo(lastBand.low) &&
+    //     closeBn.isGreaterThanOrEqualTo(lastBand.bottom);
 
 }
 
+//still need this, trend advisor won't protect us from a "too hot" buy
 function isAggressiveBuySafe(lastCandle:Candle, lastBand:QuadBand):boolean {
     const closeBn = new BigNumber(lastCandle.close);
     //if the close is less then mid buy above the bottom
@@ -48,7 +52,12 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
         throw new Error("quad-band strategy requires the quad-band indicator");
     }
 
-    const stage:Stage = determineStage(getBigNumbersFromCandle(candles, "close"), bandHistory, "hasBuySignal", conservativeBuys);
+    const stage:Stage = determineStage(
+        getBigNumbersFromCandle(candles, "close"),
+        bandHistory,
+        "hasBuySignal",
+        conservativeBuys,
+        aggressiveBuys);
 
     const lastCandle = candles[candles.length -2];
     const lastBand = bandHistory[bandHistory.length - 2];
@@ -60,7 +69,7 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
     }
 
     //if we're below the midline, buy at the bottom line
-    if (stage === Stage.belowMidLine && isConservativeBuySafe(lastCandle, lastBand)){
+    if (stage === Stage.belowMidLine || stage === Stage.belowBottomLine){
         lastBuyStage = stage;
         return true;
     }
@@ -68,9 +77,9 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
     return false;
 }
 
-function determineStage(prices:Array<BigNumber>, bandHistory:Array<any>, method:string, bars:number): Stage{
+function determineStage(prices:Array<BigNumber>, bandHistory:Array<any>, method:string, bars:number, agg:number): Stage{
     const start = bandHistory.length -1;
-    const end = start - bars;
+    let end = start - bars;
     if (end < 0){
         return Stage.unknown;
     }
@@ -83,9 +92,17 @@ function determineStage(prices:Array<BigNumber>, bandHistory:Array<any>, method:
         const price = prices[i];
         const band:QuadBand = bandHistory[i];
         belowLine = belowLine && (price.isLessThanOrEqualTo(band.mid));
-        aboveLine = aboveLine && (price.isGreaterThanOrEqualTo(band.mid));
         belowBottomLine = belowBottomLine && price.isLessThanOrEqualTo(band.bottom);
     }
+
+    //agg bars are longer time
+    end = start - agg;
+    for (let i = start; i > end; i--){
+        const price = prices[i];
+        const band:QuadBand = bandHistory[i];
+        aboveLine = aboveLine && (price.isGreaterThanOrEqualTo(band.mid));
+    }
+
 
     if (belowBottomLine){
         return Stage.belowBottomLine;

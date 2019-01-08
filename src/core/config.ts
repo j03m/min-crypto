@@ -31,16 +31,16 @@ const config:Config = {
     "barLen": 15,
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
-    "orderSize": 0.05,
-    "stopPercent": 100,
+    "orderSize": 0.25,
+    "stopPercent": 2,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
     "buySellStategy": BuySellStrategy.nibbleAndFlush,
     "decimalPlaces": 5,
-    "strategies":[["quad-band"]],
+    "strategies":[["tracking-quad-band", "trend-advisor"]],
     "indicators":[
-        "quad-band", "psar", "atr"
+        "quad-band", "atr", "psar"
     ]
 };
 
