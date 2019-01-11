@@ -38,9 +38,9 @@ const config:Config = {
     "tick": 0,
     "buySellStategy": BuySellStrategy.allInAllOut,
     "decimalPlaces": 5,
-    "strategies":[["inverted-psar", "cctracking-quad-band", "dumb-trend-advisor"]],
+    "strategies":[["inverted-psar", "tracking-quad-band", "min-profit", "dumb-trend-advisor"]],
     "indicators":[
-        "quad-band", "atr", "psar"
+        "quad-band", "psar"
     ]
 };
 
