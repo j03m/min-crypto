@@ -31,8 +31,8 @@ const config:Config = {
     "barLen": 15,
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
-    "orderSize": 0.25,
-    "stopPercent": 2,
+    "orderSize": 0.05,
+    "stopPercent": 100,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,

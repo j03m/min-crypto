@@ -6,7 +6,7 @@ export interface StrategyApi {
 }
 
 export interface OrderApi {
-    (order:Order):void
+    (order:Order, indicatorMap:Map<string, Array<any>>, prices:Array<Candle>):void
 }
 
 export default interface Strategy {

@@ -250,7 +250,7 @@ class Bot {
     informStrategies(trade:Order):void{
         for(let strategy of this.strategies.values()){
             if (typeof strategy.orderPlaced === "function"){
-                strategy.orderPlaced(trade);
+                strategy.orderPlaced(trade, this.indicatorHistory, this.allCandles);
             }
         }
     }
