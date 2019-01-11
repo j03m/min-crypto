@@ -3,10 +3,13 @@ import DBClient from "../clients/db-client";
 const moment = require("moment")
 const testStart = moment(new Date(2018, 1, 1));
 const testEnd = testStart.clone();
-testEnd.add(2, "d");
+testEnd.add(30, "d");
 
-//todo: test jan 31 - feb 5
-//todo: test march 5 - march 18
+//try this with stop loss and all in all out
+//augment tracking-quad-band to no-low-sell-quad-band, defers to tracking but won't sell at a loss
+//allow stop-loss to handle that
+
+//run feb 14-17 to test up market
 
 const backTestParams = {
     testStart: testStart.valueOf(),

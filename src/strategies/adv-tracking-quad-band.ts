@@ -4,7 +4,7 @@ export default {
     shouldBuy,
     shouldSell,
     orderPlaced,
-    name: "tracking-quad-band"
+    name: "adv-tracking-quad-band"
 }
 
 import BigNumber from "bignumber.js";

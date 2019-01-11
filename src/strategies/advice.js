@@ -1,6 +1,6 @@
 
-const buySeverity =  "conservative";
-const sellSeverity = "conservative";
+const buySeverity =  "midline";
+const sellSeverity = "midline";
 const BandsOff = false;
 const BN = require("bignumber.js");
 

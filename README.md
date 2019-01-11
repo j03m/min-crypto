@@ -12,15 +12,6 @@ TECH TODO:
 * TS Lint
 
 
-FEATURE TODO:
-
-* We're not making money - investigste better entry/exit selection
-* stop loss on portfolio value
-    > if current holdings have lost more then N% of their value, then we dump
-* calculate and include fees live and in backtest
-* live gdax smoke run (are we functional - no)
-
-
 ## Indicators and strategies
 
 ### Indicators generate data and plots
@@ -29,8 +20,7 @@ Indicators go into the indicators folder. The config has an array of indicators
 that the bot should generate. All indicators receive the current set of market data history
 and return a point in the indictor. They all implement a "generate" interface
 
-The bots reads config, loads indicators and on each tick, generates them all keeping their 
-points in a map.
+The bots reads config, loads indicators and on each tick, generates them all keeping their points in a map.
 
 This is then fed to the render which gives each indicator its own div in the report. (?) 
 
@@ -45,8 +35,7 @@ Strategies always receive all indictor history and all data history and then ret
 
 ### Stops and Limits
 
-We're might end up paying fees on gdax if we aren't careful about how we enter orders. We should 
-check if GDAX responses tell us.  
+We're might end up paying fees on gdax if we aren't careful about how we enter orders. We should check if GDAX responses tell us.  
 
 For stops, we have to put those in our selves SEPARATE From buy order. We also have to cancel them when we sell. 
 
@@ -57,15 +46,11 @@ Algo for stops:
 * If current price causes any open order to have LOST N% we flush that order (this is our stop)
 
 
+TODO: 
 
-Notes: 
+I really need a way to benchmark multiple strategies at the same time - easiest way to do that is modify backtester to accept strat/ind as params and ignore config files if so
+and run multiple CLIs
 
-Quad band alone beats a down market, but doesn't make money in an up market because 
-there are fewer dips below the conservative lower band - think s+p 500 along the top of 
-the top bands for years...
+WE need to implement fees and figure out the right way to use MKT vs LMT. LMTs won't fill and we'll have to have logic about entry points being fulfilled which will be harder to backtest. 
 
-we spent alot of time trying to make money by picking the bottom of the crashes using 
-band width - this failed. Using a good stop loss performed better. Though, we did make
-money in a down market using ATR but not much. 
-
-Could we decided direction, and adjust from ATR to aggressive quad band or HODL on the fly?
+MKTS have fees but will fill faster and won't neccessarily be our computed entry points so our back tests could be more inaccurate.
