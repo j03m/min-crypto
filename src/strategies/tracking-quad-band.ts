@@ -133,12 +133,12 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
 
     //if we bought above the midline, we sell at the top
     //really we need to inform this stragegy that there was a REAL buy event and/or a real stop loss otherwise its being dumb
-    if (lastBuyStage === Stage.aboveMidLine && new BigNumber(lastCandle.close).isGreaterThanOrEqualTo(lastBand.high)){
+    if (lastBuyStage === Stage.aboveMidLine && new BigNumber(lastCandle.high).isGreaterThanOrEqualTo(lastBand.high)){
         return true;
     }
 
     //if we bought below the midline, sell at the mid line
-    if (lastBuyStage === Stage.belowMidLine && new BigNumber(lastCandle.close).isGreaterThanOrEqualTo(lastBand.low)){
+    if (lastBuyStage === Stage.belowMidLine && new BigNumber(lastCandle.high).isGreaterThanOrEqualTo(lastBand.low)){
         return true;
     }
 

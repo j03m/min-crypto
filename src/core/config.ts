@@ -26,19 +26,19 @@ export interface Config {
 const config:Config = {
     "currency": "USD",
     "asset": "ETH",
-    "period": 20,
+    "period": 80,
     "tickLen": 1,
     "barLen": 15,
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
-    "orderSize": 0.25,
-    "stopPercent": 1,
+    "orderSize": 0.05,
+    "stopPercent": 100,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
-    "buySellStategy": BuySellStrategy.allInAllOut,
+    "buySellStategy": BuySellStrategy.nibbleAndFlush,
     "decimalPlaces": 5,
-    "strategies":[["inverted-psar", "tracking-quad-band", "min-profit", "dumb-trend-advisor"]],
+    "strategies":[["tracking-quad-band", "band-slopes-trend-advisor", "min-profit"]],
     "indicators":[
         "quad-band", "psar"
     ]

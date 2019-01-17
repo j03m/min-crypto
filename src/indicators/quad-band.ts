@@ -1,10 +1,10 @@
 import Candle from "../types/candle";
 
-const BN = require("bignumber.js");
-import {BigNumber} from "bignumber.js"
+import BigNumber from "bignumber.js";
 import {getNumbers, getProperty, getBigNumbers} from "../utils/util"
+import config from "../core/config";
 const BandGenerator = require('technicalindicators').BollingerBands;
-const period = 20;
+const period = config.period;
 export default {
     generate,
     name: "quad-band"
@@ -20,11 +20,11 @@ function generate(data: Array<Candle>): QuadBand {
 }
 
 export interface QuadBand {
-    top: number,
-    high: number,
-    mid: number,
-    low: number,
-    bottom: number
+    top: BigNumber,
+    high: BigNumber,
+    mid: BigNumber,
+    low: BigNumber,
+    bottom: BigNumber
 }
 
 export interface Band {
@@ -46,10 +46,10 @@ function makeGuide(innerBand: Band, outerBand: Band): QuadBand {
         throw new Error("Invalid input");
     }
     return {
-        top: BN(outerBand.upper),
-        high: BN(innerBand.upper),
-        mid: BN(innerBand.middle),
-        low: BN(innerBand.lower),
-        bottom: BN(outerBand.lower)
+        top: new BigNumber(outerBand.upper),
+        high: new BigNumber(innerBand.upper),
+        mid: new BigNumber(innerBand.middle),
+        low: new BigNumber(innerBand.lower),
+        bottom: new BigNumber(outerBand.lower)
     }
 };

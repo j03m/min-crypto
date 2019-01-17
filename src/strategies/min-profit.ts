@@ -9,7 +9,7 @@ export default {
 }
 
 const openOrders:Array<Order> = [];
-const threshold = 5;
+const threshold = 1;
 
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     return true;
