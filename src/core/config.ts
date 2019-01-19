@@ -19,7 +19,8 @@ export interface Config {
     buySellStategy:BuySellStrategy,
     decimalPlaces: number
     strategies:Array<Array<string>>
-    indicators:Array<string>
+    indicators:Array<string>,
+    brief: boolean
 
 };
 
@@ -32,13 +33,14 @@ const config:Config = {
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
     "orderSize": 0.05,
-    "stopPercent": 100,
+    "stopPercent": 200,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
     "buySellStategy": BuySellStrategy.nibbleAndFlush,
     "decimalPlaces": 5,
-    "strategies":[["tracking-quad-band", "band-slopes-trend-advisor", "min-profit"]],
+    "brief":false,
+    "strategies":[["band-slopes-trend-advisor"]],
     "indicators":[
         "quad-band", "psar"
     ]

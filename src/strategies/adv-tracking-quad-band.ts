@@ -18,12 +18,6 @@ interface ZonedOrder {
     zone: Zone
 }
 
-
-
-//todo: change the criteria for a conservative buy vs aggressive buy
-//we should be above the midline longer for aggressive buys
-
-//todo: really look at and expresss what you want here - this doesn't capture the trending you want
 const lookBack = 5;
 const threshhold = 80;
 const openOrders:Array<ZonedOrder> = [];
@@ -38,16 +32,8 @@ enum Zone {
     unknown = 6
 }
 
-const minDistance = 3;
+const minDistance = 2;
 
-//still need this, trend advisor won't protect us from a "too hot" buy
-// function isAggressiveBuySafe(lastCandle:Candle, lastBand:QuadBand):boolean {
-//     const closeBn = new BigNumber(lastCandle.close);
-//     //if the close is less then mid buy above the bottom
-//     return closeBn.isLessThanOrEqualTo(lastBand.high) &&
-//         closeBn.isGreaterThanOrEqualTo(lastBand.mid);
-//
-// }
 
 function determineZones(indicators: Map<string, Array<any>>, candles: Array<Candle>) {
     const bandHistory = getBandHistory(indicators);
@@ -72,21 +58,22 @@ function determineZones(indicators: Map<string, Array<any>>, candles: Array<Cand
     return {trendZone, newZone};
 }
 
-function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
-    const {trendZone, newZone} = determineZones(indicators, candles);
-
-
-    //if any zone is unkown, false
-    if (trendZone === Zone.unknown || newZone === Zone.unknown){
-        return false
-    }
-
-    //if the newZone is less then the old zone (by N?) - true, else false
-    if (trendZone - newZone >= minDistance || newZone <= Zone.low){
-        return true;
-    }
-
-    return false;
+function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):undefined{
+    // const {trendZone, newZone} = determineZones(indicators, candles);
+    //
+    //
+    // //if any zone is unkown, false
+    // if (trendZone === Zone.unknown || newZone === Zone.unknown){
+    //     return false
+    // }
+    //
+    // //if the newZone is less then the old zone (by N?) - true, else false
+    // if (trendZone - newZone >= minDistance || newZone <= Zone.low){
+    //     return true;
+    // }
+    //
+    // return false;
+    return undefined;
 }
 
 function determineZone(prices:Array<BigNumber>, bandHistory:Array<any>): Zone{

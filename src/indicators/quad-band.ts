@@ -20,6 +20,7 @@ function generate(data: Array<Candle>): QuadBand {
 }
 
 export interface QuadBand {
+    [index:string]:BigNumber,
     top: BigNumber,
     high: BigNumber,
     mid: BigNumber,

@@ -2,7 +2,6 @@ import Candle from "../types/candle";
 import Order from "../types/order";
 import BigNumber from "bignumber.js";
 export default {
-    shouldBuy,
     shouldSell,
     orderPlaced,
     name: "min-profit"
@@ -10,10 +9,6 @@ export default {
 
 const openOrders:Array<Order> = [];
 const threshold = 1;
-
-function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
-    return true;
-}
 
 function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const order:Order|undefined = openOrders[0];

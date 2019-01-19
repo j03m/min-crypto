@@ -12,7 +12,7 @@ export interface OrderApi {
 export default interface Strategy {
     [index:string]: string| StrategyApi | OrderApi | undefined,
     name:string,
-    shouldBuy: StrategyApi,
-    shouldSell:StrategyApi,
+    shouldBuy: StrategyApi | undefined,
+    shouldSell:StrategyApi | undefined,
     orderPlaced:OrderApi | undefined
 }

@@ -1,10 +1,12 @@
 const readline = require("readline");
 const moment = require("moment");
 const BN = require("bignumber.js");
-
+const config = require("../core/config").default;
 function getReady() {
-  readline.cursorTo(process.stdout, 0, 0);
-  readline.clearScreenDown(process.stdout);
+  if (config.brief){
+    readline.cursorTo(process.stdout, 0, 0);
+    readline.clearScreenDown(process.stdout);
+  }
 }
 
 function set(txt) {

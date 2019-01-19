@@ -214,15 +214,33 @@ class Bot {
         //an array of names. If any array's ORed together are true, the whole thing is true
         return strategyConfig.reduce((accumulator:boolean, arrayOfStrategies:Array<string>) => {
             //strategies are ANDed together in a given array of names.
-            return accumulator || arrayOfStrategies.reduce((subAccumulator: boolean, name:string):boolean => {
-                const strategy:Strategy|undefined = this.strategies.get(name);
-                if (strategy === undefined){
-                    throw new Error(`Cannot find strategy ${name}`);
-                }
-                const strategyImpl:StrategyApi = strategy[method] as StrategyApi;
-                return subAccumulator && strategyImpl(this.indicatorHistory, this.allCandles);
-            }, true);
+            return accumulator || this._reduceStrategyFor(arrayOfStrategies, method);
         }, false);
+    }
+
+    private _reduceStrategyFor(arrayOfStrategies: Array<string>, method: string) {
+        return arrayOfStrategies.reduce((subAccumulator: boolean, name: string): boolean => {
+            const strategy: Strategy | undefined = this.strategies.get(name);
+            if (strategy === undefined) {
+                throw new Error(`Cannot find strategy ${name}`);
+            }
+            const strategyImpl: StrategyApi | undefined = strategy[method] as StrategyApi;
+            if (strategyImpl) {
+                //why? APIs are optional, not implementing one means "I don't have advice" if that is the case,
+                //AND this is the first and only strategy, we can't && we need to set
+                const result = strategyImpl(this.indicatorHistory, this.allCandles);
+                if (subAccumulator == undefined){
+                    subAccumulator = result;
+                }
+                else {
+                    subAccumulator = subAccumulator && strategyImpl(this.indicatorHistory, this.allCandles);
+                }
+                return subAccumulator;
+
+            } else {
+                return subAccumulator;
+            }
+        }, undefined);
     }
 
     generateAdvice() {
@@ -232,11 +250,13 @@ class Bot {
             buy,
             sell
         }
+        console.log("current advice:", this._currentAdvice);
     }
 
     async sendOrder(trade:Order) {
         //j03m store here - render orders
         let response;
+        console.log("trading:", trade);
         response = await this.client.order(trade);
         this._trades[trade.when.getTime()] = trade;
         this._lastResponse = response;
