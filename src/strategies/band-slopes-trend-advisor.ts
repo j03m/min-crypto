@@ -14,8 +14,8 @@ import {QuadBand} from "../indicators/quad-band";
 import candle from "../types/candle";
 import Order from "../types/order";
 
-const longLookBack = 25;
-const shortLookBack = 5;
+const longLookBack = 5;
+const shortLookBack = 2;
 const longPrecision = 100;
 const shortPrecision = 10;
 const actions:Map<string, string> = new Map<string, string>();
@@ -27,10 +27,13 @@ const highBand = "high";
 
 actions.set("up,up,low", "BUY");
 actions.set("up,up,high", "HOLD");
+actions.set("up,up,mid", "HOLD");
 actions.set("up,down,low", "HOLD");
 actions.set("up,down,high", "SELL");
+actions.set("up,down,mid", "HOLD");
 actions.set("up,flat,low", "BUY");
-actions.set("up,flat,high", "SELL");
+actions.set("up,flat,high", "HOLD");
+actions.set("up,flat,mid", "HOLD");
 actions.set("down,up,low", "BUY");
 actions.set("down,up,high", "HOLD");
 actions.set("down,down,low", "HOLD");
@@ -42,7 +45,9 @@ actions.set("flat,up,high", "HOLD");
 actions.set("flat,down,low", "HOLD");
 actions.set("flat,down,high", "SELL");
 actions.set("flat,flat,low", "BUY");
-actions.set("flat,flat,high", "SELL");
+actions.set("flat,flat,high", "HOLD");
+actions.set("flat,flat,mid", "HOLD");
+
 
 function round(input:BigNumber, precision:number):number{
     return Math.round(input.toNumber() * precision)/precision;
@@ -60,7 +65,7 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
         return false;
     }
     const longSlope:BigNumber = getSlopeFromBand(bandHistory, longLookBack, "bottom");
-    const shortSlope:BigNumber = getSlopeFromBand(bandHistory, shortLookBack, "top");
+    const shortSlope:BigNumber = getSlopeFromBand(bandHistory, shortLookBack, "bottom");
 
     const longToken:string = getDirection(longSlope, longPrecision);
     const shortToken:string = getDirection(shortSlope, longPrecision);
@@ -94,6 +99,11 @@ function getBandToken(candle:Candle, quadBand:QuadBand):string{
 }
 
 
+function isBelowMid(candle:Candle, quadBand:QuadBand):boolean{
+    return quadBand.mid.isGreaterThanOrEqualTo(candle.high);
+}
+
+
 
 
 function getDirection(input:BigNumber, precision:number):string{
@@ -118,6 +128,17 @@ function getSlope(xDiff: number, y1:BigNumber, y2: BigNumber){
     return y2.minus(y1).dividedBy(xDiff);
 }
 
+function getStateAndAction(bandHistory: Array<QuadBand>, band: string, bandToken: string) {
+    const longSlope = getSlopeFromBand(bandHistory, longLookBack, band);
+    const shortSlope = getSlopeFromBand(bandHistory, shortLookBack, band);
+    const longToken: string = getDirection(longSlope, shortPrecision);
+    const shortToken: string = getDirection(shortSlope, shortPrecision);
+    const state = [longToken, shortToken, bandToken].join(",");
+
+    const action = actions.get(state);
+    return {state, action};
+}
+
 function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const bandHistory:Array<QuadBand> | undefined = indicators.get("quad-band");
     if (bandHistory === undefined || bandHistory.length <=0){
@@ -128,47 +149,47 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     if (bandHistory.length < longLookBack){
         return false;
     }
-    const longSlope:BigNumber = getSlopeFromBand(bandHistory, longLookBack, "top");
-    const shortSlope:BigNumber = getSlopeFromBand(bandHistory, shortLookBack, "top");
 
-    const longToken:string = getDirection(longSlope, longPrecision);
-    const shortToken:string = getDirection(shortSlope, shortPrecision);
     const lastCandle  = candles[candles.length-1];
     const lastBand = bandHistory[bandHistory.length-1];
     const bandToken:string = getBandToken(lastCandle, lastBand);
-    const state = [longToken, shortToken, bandToken].join(",");
 
-    const action = actions.get(state);
-
-    console.log(`Should SELL? time: ${lastCandle.opentime} state: ${state} action: ${action}`);
-
-    if (action === "SELL"){
-        return true;
-    }
-    else if (action === undefined && goodSale(lastBand, lastCandle)) {
-        return true;
-    }
-
-    return false;
-}
-
-
-function goodSale(lastBand:QuadBand, lastCandle:Candle):boolean{
-    const saleValue = getSaleValue(lastCandle);
-    const distanceFromLow = new BigNumber(lastCandle.high).minus(lastBand.low);
-    console.log(`Possible sale value: ${saleValue} @ distance: ${distanceFromLow.toString()}`);
-    if (saleValue.isGreaterThanOrEqualTo(0.5) && distanceFromLow.toNumber() > 5){
-        return true;
-    }
-    return false;
-}
-
-function getSaleValue(lastCandle:Candle):BigNumber{
-
-    //why it this up, up, mid??? should be down?
-    if (lastCandle.opentime.getTime() === new Date("Wed Mar 07 2018 08:15:00 GMT-0500").getTime()){
+    if (lastCandle.opentime.getTime() === new Date("Fri Mar 09 2018 18:15:00 GMT-0500").getTime()){
         debugger;
     }
+
+    const { state : stateB, action: actionB } = getStateAndAction(bandHistory, "bottom", bandToken);
+   // const { state : stateT, action: actionT } = getStateAndAction(bandHistory, "top", bandToken);
+
+   // console.log(`Should SELL? time: ${lastCandle.opentime} stateB: ${stateB} stateT: ${stateT} actionB: ${actionB} actionT: ${actionT}`);
+    console.log(`Should SELL? time: ${lastCandle.opentime} stateB: ${stateB}  actionB: ${actionB}`);
+    if (actionB === "SELL" ){
+        return true;
+    }
+    else if (actionB === undefined && goodSale(lastBand, lastCandle)) {
+        return true;
+    }
+
+    return false;
+}
+
+//tests if we are above top
+function goodSale(lastBand:QuadBand, lastCandle:Candle):boolean {
+    return lastBand.top.isLessThanOrEqualTo(lastCandle.high);
+}
+
+//tests if we made $$
+// function goodSale(lastBand:QuadBand, lastCandle:Candle):boolean{
+//     const saleValue = getSaleValue(lastCandle);
+//     const distanceFromLow = new BigNumber(lastCandle.high).minus(lastBand.low);
+//     console.log(`Possible sale value: ${saleValue} @ distance: ${distanceFromLow.toString()}`);
+//     if (saleValue.isGreaterThanOrEqualTo(1.5) && distanceFromLow.toNumber() > 5){
+//         return true;
+//     }
+//     return false;
+// }
+
+function getSaleValue(lastCandle:Candle):BigNumber{
 
     const order:Order|undefined = openOrders[openOrders.length - 1];
     if (order === undefined){

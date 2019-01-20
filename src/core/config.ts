@@ -32,8 +32,8 @@ const config:Config = {
     "barLen": 15,
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
-    "orderSize": 0.05,
-    "stopPercent": 200,
+    "orderSize": 0.25,
+    "stopPercent": 5,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
@@ -42,7 +42,7 @@ const config:Config = {
     "brief":false,
     "strategies":[["band-slopes-trend-advisor"]],
     "indicators":[
-        "quad-band", "psar"
+        "quad-band", "fast-quad-band", "psar"
     ]
 };
 

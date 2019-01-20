@@ -11,11 +11,12 @@ export default {
 }
 
 
-function generate(data: Array<Candle>): QuadBand {
+function generate(data: Array<Candle>, periodOverride:number|undefined): QuadBand {
     const numbers = getNumbers(getBigNumbers(getProperty(data, "close")));
+    const _period = periodOverride === undefined ? period : periodOverride;
     return makeGuide(
-        makeBand(numbers.slice(period * -1), period, 1),
-        makeBand(numbers.slice(period * -1), period, 2)
+        makeBand(numbers.slice(period * -1), _period, 1),
+        makeBand(numbers.slice(period * -1), _period, 2)
     );
 }
 
