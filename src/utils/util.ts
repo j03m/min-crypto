@@ -92,3 +92,44 @@ export function getProperty(data:Array<Candle>, prop:string){
     }) as Array<string>;
     return props;
 }
+
+export function getLastHigh(data:Array<Candle>):BigNumber{
+    return new BigNumber(data[data.length -1].high);
+}
+
+export function getLastLow(data:Array<Candle>):BigNumber{
+    return new BigNumber(data[data.length -1].low);
+}
+
+export function getLastCandleTime(data:Array<Candle>):Date{
+    return data[data.length - 1].opentime;
+}
+
+export function isNewHigh(data:Array<Candle>, lookBack:number):boolean{
+    const lastHigh = getLastHigh(data);
+    const comparison = data.slice(lookBack * -1, data.length -1);
+
+    let result = true;
+    for(let i = 0; i< comparison.length; i++){
+        result = result && lastHigh.isGreaterThan(comparison[i].high);
+        if (result === false){
+            break;
+        }
+    }
+    return result;
+}
+
+export function isNewLow(data:Array<Candle>, lookBack:number):boolean{
+    const lastLow = getLastLow(data);
+    const comparison = data.slice(lookBack * -1, data.length -1);
+
+    let result = true;
+    for(let i = 0; i< comparison.length; i++){
+        result = result && lastLow.isLessThan(comparison[i].low);
+        if (result === false){
+            break;
+        }
+    }
+    return result;
+}
+

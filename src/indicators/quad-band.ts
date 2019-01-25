@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 import {getNumbers, getProperty, getBigNumbers} from "../utils/util"
 import config from "../core/config";
 const BandGenerator = require('technicalindicators').BollingerBands;
-const period = config.period;
+const period = 80;
 export default {
     generate,
     name: "quad-band"
@@ -13,6 +13,9 @@ export default {
 
 function generate(data: Array<Candle>, periodOverride:number|undefined): QuadBand {
     const numbers = getNumbers(getBigNumbers(getProperty(data, "close")));
+    if (numbers.length < period){
+        throw new Error("Cannot generate indicator, not enough data.");
+    }
     const _period = periodOverride === undefined ? period : periodOverride;
     return makeGuide(
         makeBand(numbers.slice(period * -1), _period, 1),

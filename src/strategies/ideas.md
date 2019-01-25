@@ -95,8 +95,24 @@ Slope - Long - flat Slope - Short - flat Band-High
     
 ### Refinement
 
-The idea of looking at specific slopes, could we observe the deceleration of price over time to determine a reversal by looking at slopes? Ie, look at the value of N slopes over the last X bars - are we accellerating or decelerating?
+The idea of looking at specific slopes, could we observe the deceleration of price over time to determine a reversal by looking at slopes? Ie, look at the value of N slopes over the last X bars - are we accelerating or decelerating?
 
 Noise reduction algos? Can they help here? Could we smooth prices? Isn't that just what a mva is tho?   
 
 Another idea is the concept of a beacon price. Could we behave like market maker and based on larger trend data set prices on the short term? Ie, get the price for a 25 day mva for daily bars, and use that as the place we buy and sell around?
+
+
+Could we rather then running the backtester to see if we make money, have something check multiple indicators and classify the attributes that made a good entry point and good exit point. Then using those classifications, find good trade entries and exits?
+
+Volume
+HH,HL,LH,LL (high high, high low etc reversals)
+given a buy, rather then follow slope, draw a trend line and hold while above?
+
+Size of position is based on current ATR? 
+
+Look at the previous Days RANGE (ATR?) and use that to inform buy/sell points on the 15 min chart? 
+
+Look at the previous 5 days trend up/down use that to inform buy/sell points on the 15 min chart. Maybe not just trend, maybe draw a channel using that information that 
+determines stop loss?
+
+

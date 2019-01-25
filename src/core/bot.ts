@@ -28,10 +28,12 @@ let ASSET_TETHER;
 const ORDER_SIZE = BN(config.orderSize);
 const BAR_PROPERTY = config.barProperty;
 
-const PERIOD = config.period;
 const TICK_LEN = config.tickLen;
 const BAR_LEN = config.barLen;
 const WAIT_TO_TRADE = config.waitToTrade;
+
+const BACK_FILL = config.backFill;
+const MAX_BARS = config.maxBars;
 
 const assert = require("assert");
 
@@ -155,23 +157,6 @@ class Bot {
     get pendingTrade() {
         return this._pendingTrade;
     }
-
-    // generateRSI(){
-    //   const numbers = this._getNumbers();
-    //   const value = RSI.generateRSI(numbers);
-    //   this._rsi.push(value);
-    //   return value;
-    // }
-
-
-    // generateBollingerBands() {
-    //   const numbers = this._getNumbers();
-    //   const stdDev2 = bands.makeBand(numbers, PERIOD, 2);
-    //   const stdDev1 = bands.makeBand(numbers, PERIOD, 1);
-    //   const guide = bands.makeGuide(stdDev1, stdDev2);
-    //   this._bollingerBands.push(guide);
-    //   return guide;
-    // }
 
     get advice() {
         return this._currentAdvice;
@@ -408,7 +393,7 @@ class Bot {
         //back fill things
 
         const endTime = typeof testStart !== 'number' ? Date.now() : testStart;
-        const startTime = new Date(endTime).getTime() - (60000 * 15 * PERIOD);
+        const startTime = new Date(endTime).getTime() - (60000 * 15 * BACK_FILL);
 
         const response = await bars.fetchCandles({
             fetchAction: async (request) => {
@@ -418,7 +403,7 @@ class Bot {
             interval: BAR_LEN + "m",
             startTime: startTime,
             endTime: endTime,
-            maxBars: PERIOD
+            maxBars: BACK_FILL < MAX_BARS ? BACK_FILL : MAX_BARS
         });
 
         this.allCandles = response.slice();

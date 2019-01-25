@@ -1,9 +1,9 @@
 process.on('unhandledRejection', up => { throw up });
 import DBClient from "../clients/db-client";
 const moment = require("moment")
-const testStart = moment(new Date(2017, 12, 26));
+const testStart = moment(new Date(2018, 2, 9));
 const testEnd = testStart.clone();
-testEnd.add(365, "d");
+testEnd.add(30, "d");
 
 //try this with stop loss and all in all out
 //augment tracking-quad-band to no-low-sell-quad-band, defers to tracking but won't sell at a loss
