@@ -9,7 +9,9 @@ import BigNumber from "bignumber.js";
 
 import config from "../core/config";
 import {QuadBand} from "../indicators/quad-band";
-const rideTime = config.indicatorConfig.get("new-high").period;
+import {getLastHigh} from "../utils/util";
+import candle from "../types/candle";
+const rideTime = config.namedConfigs.get("new-high").period / 2;
 let lastOrder:Order;
 export default {
     shouldBuy,
@@ -21,39 +23,44 @@ export default {
 
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const highs:Array<number> | undefined = indicators.get("new-high");
-    const quadBands:Array<QuadBand>|undefined =  indicators.get("quad-band");
-
-    if (highs === undefined){
-        throw new Error("Requires the new-high indicator");
+    const quadBand:Array<QuadBand> | undefined = indicators.get("quad-band");
+    const periodSlope:Array<number>| undefined = indicators.get("period-slope");
+    if (quadBand === undefined || highs === undefined || periodSlope === undefined){
+        throw new Error("missing indicators")
     }
 
-    if (quadBands === undefined){
-        throw new Error("Requires the quad-band indicator");
+    let buyFlag = highs[highs.length - 1] === 1;
+    const slope = periodSlope[periodSlope.length -1];
+    if (slope <= 0){
+        buyFlag = buyFlag && new BigNumber(candles[candles.length -1].low).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
     }
 
-    const buyFlag = highs[highs.length - 1] === 1;
-    const quadBand = quadBands[quadBands.length - 1];
-    const candle:Candle = candles[candles.length - 1];
-    if (buyFlag){
-        //debugger;
+    if(buyFlag){
+        debugger
     }
-    return buyFlag && quadBand.mid.isGreaterThanOrEqualTo(candle.high);
+
+    return buyFlag
 }
 
+
+//todo: add +/- DMI as a confirming indicator
+//what happened march 14-19
 function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const highs:Array<number> | undefined = indicators.get("new-high");
-    const lows:Array<number> | undefined = indicators.get("new-low");
+    const directional:Array<number> | undefined = indicators.get("directional");
     if (highs === undefined){
         throw new Error("Requires the new-high indicator");
     }
 
-    if (lows === undefined){
-        throw new Error("Requires the new-low indicator");
+    if (directional === undefined){
+        throw new Error("requires directional")
     }
+
 
     if (lastOrder === undefined){
         return false;
     }
+
 
     //if there has been any new high in ride time? If so don't sell
     let sellFlag = true;
@@ -65,10 +72,11 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
         }
     }
 
-    const close = new BigNumber(candles[candles.length -1].close);
-
-    //run is over or we hit a new low
-    return (sellFlag || lows[lows.length] === 1);
+    //run is over
+    if(sellFlag){
+        sellFlag = directional[directional.length -1] !== 1;
+    }
+    return sellFlag;
 }
 
 function orderPlaced(order:Order, indicators:Map<string, Array<any>>, candles:Array<Candle>){

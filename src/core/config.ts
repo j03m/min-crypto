@@ -22,19 +22,29 @@ export interface Config {
     brief: boolean,
     backFill: number,
     maxBars: number,
-    indicatorConfig: Map<string, any>;
+    namedConfigs: Map<string, any>;
 
 };
 
 
-const indicatorConfig = new Map<string, any>();
-indicatorConfig.set("new-high", {
-    period: 24
+const namedConfigs = new Map<string, any>();
+namedConfigs.set("new-high", {
+    period: 96
 });
 
-indicatorConfig.set("new-low", {
-    period: 24
-})
+namedConfigs.set("new-low", {
+    period: 96
+});
+
+namedConfigs.set("min-profit", {
+    threshold: 5
+});
+
+
+namedConfigs.set("period-slope", {
+    period: 96
+});
+
 
 const config:Config = {
     "currency": "USD",
@@ -46,18 +56,18 @@ const config:Config = {
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
     "orderSize": 0.25,
-    "stopPercent": 2,
+    "stopPercent": 10,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
     "buySellStategy": BuySellStrategy.allInAllOut,
     "decimalPlaces": 5,
     "brief":false,
-    "strategies":[["turtle"]],
+    "strategies":[[ "turtle"]],
     "indicators":[
-        "quad-band", "new-high", "new-low", "psar"
+        "quad-band", "new-high", "psar", "directional", "period-slope"
     ],
-    indicatorConfig: indicatorConfig
+    namedConfigs: namedConfigs
 };
 
 export default Object.freeze(config) as Config;

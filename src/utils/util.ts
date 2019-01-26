@@ -1,8 +1,8 @@
 import Candle from "../types/candle";
-
-const assert = require("assert");
 import BigNumber from "bignumber.js";
 import * as Enums from "../types/enums";
+
+const assert = require("assert");
 
 export const unitMilliseconds = Object.freeze([
     60000, //m
@@ -133,3 +133,10 @@ export function isNewLow(data:Array<Candle>, lookBack:number):boolean{
     return result;
 }
 
+export function getSlope(xDiff: number, y1: BigNumber, y2: BigNumber) {
+    return y2.minus(y1).dividedBy(xDiff);
+}
+
+export function round(input: BigNumber, precision: number): number {
+    return Math.round(input.toNumber() * precision) / precision;
+}

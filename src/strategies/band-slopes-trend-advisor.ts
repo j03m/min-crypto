@@ -1,4 +1,8 @@
 import Candle from "../types/candle";
+import BigNumber from "bignumber.js";
+import {getSlope, round} from "../utils/util";
+import {QuadBand} from "../indicators/quad-band";
+import Order from "../types/order";
 
 export default {
     shouldBuy,
@@ -7,12 +11,6 @@ export default {
     name: "band-slopes-trend-advisor"
 }
 
-
-import BigNumber from "bignumber.js";
-import {getBigNumbersFromCandle} from "../utils/util";
-import {QuadBand} from "../indicators/quad-band";
-import candle from "../types/candle";
-import Order from "../types/order";
 
 const longLookBack = 5;
 const shortLookBack = 2;
@@ -47,11 +45,6 @@ actions.set("flat,down,high", "SELL");
 actions.set("flat,flat,low", "BUY");
 actions.set("flat,flat,high", "HOLD");
 actions.set("flat,flat,mid", "HOLD");
-
-
-function round(input:BigNumber, precision:number):number{
-    return Math.round(input.toNumber() * precision)/precision;
-}
 
 
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
@@ -122,10 +115,6 @@ function getSlopeFromBand(quadBand:Array<QuadBand>, lookBack:number, prop:string
     const lookBackValue:QuadBand = quadBand[quadBand.length - lookBack];
     const currentValue:QuadBand = quadBand[quadBand.length - 1];
     return getSlope(longLookBack, lookBackValue[prop], currentValue[prop]);
-}
-
-function getSlope(xDiff: number, y1:BigNumber, y2: BigNumber){
-    return y2.minus(y1).dividedBy(xDiff);
 }
 
 function getStateAndAction(bandHistory: Array<QuadBand>, band: string, bandToken: string) {

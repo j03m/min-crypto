@@ -8,7 +8,7 @@ export default {
 }
 
 import config from "../core/config";
-const period = config.indicatorConfig.get("new-high").period;
+const period = config.namedConfigs.get("new-high").period;
 
 function generate(data:Array<Candle>):number{
     if (data.length < period){
