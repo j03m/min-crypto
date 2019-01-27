@@ -46,10 +46,15 @@ namedConfigs.set("period-slope", {
 });
 
 
+namedConfigs.set("directional", {
+    required: 96*4,
+    period: 96
+});
+
 const config:Config = {
     "currency": "USD",
     "asset": "ETH",
-    "backFill": 100,
+    "backFill": 96*4,
     "maxBars": 500,
     "tickLen": 1,
     "barLen": 15,
