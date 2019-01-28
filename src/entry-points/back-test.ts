@@ -1,15 +1,20 @@
 process.on('unhandledRejection', up => { throw up });
 import DBClient from "../clients/db-client";
 const moment = require("moment")
-const testStart = moment(new Date(2018, 0, 1));
+const testStart = moment(new Date(2018, 0, 7));
 const testEnd = testStart.clone();
-testEnd.add(120, "d");
+testEnd.add(2, "d");
 
-//try this with stop loss and all in all out
-//augment tracking-quad-band to no-low-sell-quad-band, defers to tracking but won't sell at a loss
-//allow stop-loss to handle that
+//test: jan 7-9 lose money, miss upswing
+//test jan 17-19 lose money
+//test jan 22-25 lost money
+//test march 11-12 lost money
+//test march 16-17 lost money
+//test march 23-24 lost money
+//test march 25-26 lost money
 
-//run feb 14-17 to test up market
+
+
 
 const backTestParams = {
     testStart: testStart.valueOf(),

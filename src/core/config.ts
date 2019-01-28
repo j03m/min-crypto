@@ -29,11 +29,15 @@ export interface Config {
 
 const namedConfigs = new Map<string, any>();
 namedConfigs.set("new-high", {
-    period: 96
+    long: 96,
+    med: 96/2,
+    short: 96/4
 });
 
 namedConfigs.set("new-low", {
-    period: 96
+    long: 96,
+    med: 96/2,
+    short: 96/4
 });
 
 namedConfigs.set("min-profit", {
@@ -42,7 +46,9 @@ namedConfigs.set("min-profit", {
 
 
 namedConfigs.set("period-slope", {
-    period: 96
+    long: 96/2,
+    med: 96/4,
+    short: 96/8
 });
 
 
@@ -70,7 +76,7 @@ const config:Config = {
     "brief":false,
     "strategies":[[ "turtle"]],
     "indicators":[
-        "quad-band", "new-high", "psar", "directional", "period-slope"
+        "quad-band", "new-high", "psar", "new-low", "directional", "period-slope"
     ],
     namedConfigs: namedConfigs
 };

@@ -1,8 +1,10 @@
 import Candle from "../types/candle";
 import BigNumber from "bignumber.js";
 import {getBigNumbers, getNumbers, getProperty} from "../utils/util";
+import {AdxEntry} from "../types/adx";
 import config from "../core/config";
 const ADX = require('technicalindicators').ADX;
+
 export default {
     generate,
     name: "directional"
@@ -11,7 +13,7 @@ export default {
 const period = config.namedConfigs.get("directional").period;
 const required = config.namedConfigs.get("directional").required;
 
-function generate(data:Array<Candle>):number{
+function generate(data:Array<Candle>):AdxEntry{
     if (data.length < required){
         throw new Error("not enough bars");
     }
