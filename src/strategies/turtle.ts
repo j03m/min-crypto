@@ -9,10 +9,11 @@ import BigNumber from "bignumber.js";
 
 import config from "../core/config";
 import {QuadBand} from "../indicators/quad-band";
-import {AdxEntry} from "../types/adx";
-import {getSlope} from "../utils/util";
 import {Threshold} from "../types/thresholds";
 let lastOrder:Order|undefined;
+
+const highPeriod = config.namedConfigs.get("new-high").short;
+
 export default {
     shouldBuy,
     shouldSell,
@@ -57,19 +58,29 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
         return false;
     }
 
-    const newHigh = highs[highs.length-1].med === 1;
-    const newLow = lows[lows.length-1].med  === 1;
+    const newHigh = !hasIndicatorForPeriod(highs, "short", highPeriod);
+    const newLow = false; //hasIndicatorForPeriod(lows, "short", highPeriod);
     const slope = slopes[slopes.length -1].short;
-
-    let sellFlag:boolean = (newHigh || newLow) && (slope < 0);
+    const lastCandle = candles[candles.length -1];
+    //let sellFlag:boolean = (newHigh || newLow) && (slope <= 0);
+    let sellFlag:boolean = slopes[slopes.length-1].med < 1 && slopes[slopes.length-1].short < 0;
+    if (lastCandle.opentime.getTime() === new Date("Mon Jan 08 2018 02:45:00 GMT-0500").getTime()){
+        //debugger;
+    }
 
     console.log(`should selll? : ${sellFlag} Slope: ${slope.toString()}, Has High: ${newHigh} Has low: ${newLow}`);
 
     if (sellFlag){
-        debugger;
+       // debugger;
     }
 
     return sellFlag;
+}
+
+function hasIndicatorForPeriod(indicators:Array<Threshold>, property:string, period:number){
+    return indicators.slice(period*-1).filter((value) => {
+        return value[property] === 1;
+    }).length > 0;
 }
 
 function orderPlaced(order:Order, indicators:Map<string, Array<any>>, candles:Array<Candle>){

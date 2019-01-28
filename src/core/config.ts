@@ -74,7 +74,7 @@ const config:Config = {
     "buySellStategy": BuySellStrategy.allInAllOut,
     "decimalPlaces": 5,
     "brief":false,
-    "strategies":[[ "turtle"]],
+    "strategies":[[ "turtle", "min-profit"]],
     "indicators":[
         "quad-band", "new-high", "psar", "new-low", "directional", "period-slope"
     ],
