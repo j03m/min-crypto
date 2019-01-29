@@ -25,17 +25,20 @@ export default {
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const highs:Array<Threshold> | undefined = indicators.get("new-high");
     const quadBand:Array<QuadBand> | undefined = indicators.get("quad-band");
+    const lows:Array<Threshold> | undefined = indicators.get("new-low");
     const periodSlope:Array<Threshold>| undefined = indicators.get("period-slope");
     if (quadBand === undefined || highs === undefined || periodSlope === undefined){
         throw new Error("missing indicators")
     }
     const lastCandle = candles[candles.length -1];
     let buyFlag = highs[highs.length - 1].long === 1;
+    const high = highs[highs.length - 1];
+    const low = lows[lows.length - 1];
     const slopes:Threshold = periodSlope[periodSlope.length -1];
    // buyFlag = buyFlag && new BigNumber(candles[candles.length -1].high).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
 
-    buyFlag = buyFlag && slopes.long > 0 && slopes.med >= 0 && slopes.short >=0;
-    console.log(`j03m BUY: ${buyFlag} @ ${lastCandle.opentime}: ${slopes.long} - ${slopes.med} - ${slopes.short}`);
+    buyFlag = buyFlag && slopes.med > .2 && slopes.short > .2;
+    console.log(`j03m SELL: ${buyFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
     return buyFlag
 }
 
@@ -62,16 +65,18 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     const slopes = periodSlope[periodSlope.length -1];
 
     //trend is still too strong, don't consider a sale.
-    if (slopes.long > .7){
+    if (slopes.long >= .5){
         return false;
     }
 
 
     const lastCandle = candles[candles.length -1];
+    const high = highs[highs.length -1];
+    const low = lows[lows.length -1];
     //only sell strong trends, otherwise defer to stop loss
-    let sellFlag:boolean = slopeLookBack(periodSlope, 5);
+    let sellFlag:boolean = slopeLookBack(periodSlope, 5) && lows[lows.length -1].long === 1;
 
-    console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: ${slopes.long} - ${slopes.med} - ${slopes.short}`);
+    console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
 
 
     return sellFlag;
@@ -79,7 +84,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
 
 function slopeLookBack(periodSlopes:Array<Threshold>, lookBack:number){
     return periodSlopes.slice(lookBack * -1).reduce((acc, slopes):boolean =>{
-        return acc && slopes.med <=0  && slopes.short <=0;
+        return acc && slopes.short <=0;
     }, true);
 }
 

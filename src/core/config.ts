@@ -46,9 +46,9 @@ namedConfigs.set("min-profit", {
 
 
 namedConfigs.set("period-slope", {
-    long: 192,
-    med: 192/4,
-    short: 192/8
+    long: 96*2, //2 days
+    med: 96, //1 day
+    short: 96/4 //1/4 day
 });
 
 
