@@ -25,23 +25,24 @@ export default {
 function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const highs:Array<Threshold> | undefined = indicators.get("new-high");
     const quadBand:Array<QuadBand> | undefined = indicators.get("quad-band");
-    const periodSlope:Array<number>| undefined = indicators.get("period-slope");
+    const periodSlope:Array<Threshold>| undefined = indicators.get("period-slope");
     if (quadBand === undefined || highs === undefined || periodSlope === undefined){
         throw new Error("missing indicators")
     }
-
+    const lastCandle = candles[candles.length -1];
     let buyFlag = highs[highs.length - 1].long === 1;
-    const slope = periodSlope[periodSlope.length -1];
-    if (slope <= 0){
-        buyFlag = buyFlag && new BigNumber(candles[candles.length -1].low).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
-    }
+    const slopes:Threshold = periodSlope[periodSlope.length -1];
+   // buyFlag = buyFlag && new BigNumber(candles[candles.length -1].high).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
+
+    buyFlag = buyFlag && slopes.long > 0 && slopes.med >= 0 && slopes.short >=0;
+    console.log(`j03m BUY: ${buyFlag} @ ${lastCandle.opentime}: ${slopes.long} - ${slopes.med} - ${slopes.short}`);
     return buyFlag
 }
 
 function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):boolean{
     const highs:Array<Threshold> | undefined = indicators.get("new-high");
     const lows:Array<Threshold> | undefined = indicators.get("new-low");
-    const slopes:Array<Threshold> | undefined = indicators.get("period-slope");
+    const periodSlope = indicators.get("period-slope");
     if (highs === undefined){
         throw new Error("Requires the new-high indicator");
     }
@@ -50,7 +51,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
         throw new Error("Requires the new-low indicator");
     }
 
-    if (slopes === undefined){
+    if (periodSlope === undefined){
         throw new Error("requires directional")
     }
 
@@ -58,21 +59,13 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
         return false;
     }
 
-    const newHigh = !hasIndicatorForPeriod(highs, "short", highPeriod);
-    const newLow = false; //hasIndicatorForPeriod(lows, "short", highPeriod);
-    const slope = slopes[slopes.length -1].short;
+    const slopes = periodSlope[periodSlope.length -1];
     const lastCandle = candles[candles.length -1];
-    //let sellFlag:boolean = (newHigh || newLow) && (slope <= 0);
-    let sellFlag:boolean = slopes[slopes.length-1].med < 1 && slopes[slopes.length-1].short < 0;
-    if (lastCandle.opentime.getTime() === new Date("Mon Jan 08 2018 02:45:00 GMT-0500").getTime()){
-        //debugger;
-    }
+    //only sell strong trends, otherwise defer to stop loss
+    let sellFlag:boolean = slopes.long > .5 && slopes.short < 0 && slopes.long + slopes.short <= 0;
 
-    console.log(`should selll? : ${sellFlag} Slope: ${slope.toString()}, Has High: ${newHigh} Has low: ${newLow}`);
+    console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: ${slopes.long} - ${slopes.med} - ${slopes.short}`);
 
-    if (sellFlag){
-       // debugger;
-    }
 
     return sellFlag;
 }

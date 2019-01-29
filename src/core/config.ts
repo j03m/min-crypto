@@ -46,9 +46,9 @@ namedConfigs.set("min-profit", {
 
 
 namedConfigs.set("period-slope", {
-    long: 96/2,
-    med: 96/4,
-    short: 96/8
+    long: 96,
+    med: 96/2,
+    short: 96/4
 });
 
 
@@ -67,14 +67,14 @@ const config:Config = {
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
     "orderSize": 0.25,
-    "stopPercent": 10,
+    "stopPercent": 3,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
     "buySellStategy": BuySellStrategy.allInAllOut,
     "decimalPlaces": 5,
     "brief":false,
-    "strategies":[[ "turtle", "min-profit"]],
+    "strategies":[[ "turtle"]],
     "indicators":[
         "quad-band", "new-high", "psar", "new-low", "directional", "period-slope"
     ],

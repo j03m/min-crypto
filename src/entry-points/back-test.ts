@@ -1,9 +1,9 @@
 process.on('unhandledRejection', up => { throw up });
 import DBClient from "../clients/db-client";
 const moment = require("moment")
-const testStart = moment(new Date(2018, 0, 7));
+const testStart = moment(new Date(2018, 0, 1));
 const testEnd = testStart.clone();
-testEnd.add(2, "d");
+testEnd.add(10, "d");
 
 //test: jan 7-9 lose money, miss upswing
 //test jan 17-19 lose money
