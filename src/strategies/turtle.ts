@@ -62,12 +62,18 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     const slopes = periodSlope[periodSlope.length -1];
     const lastCandle = candles[candles.length -1];
     //only sell strong trends, otherwise defer to stop loss
-    let sellFlag:boolean = slopes.long > .5 && slopes.short < 0 && slopes.long + slopes.short <= 0;
+    let sellFlag:boolean = slopeLookBack(periodSlope, 5);
 
     console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: ${slopes.long} - ${slopes.med} - ${slopes.short}`);
 
 
     return sellFlag;
+}
+
+function slopeLookBack(periodSlopes:Array<Threshold>, lookBack:number){
+    return periodSlopes.slice(lookBack * -1).reduce((acc, slopes):boolean =>{
+        return acc && slopes.long > .4 && slopes.short <=0;
+    }, true);
 }
 
 function hasIndicatorForPeriod(indicators:Array<Threshold>, property:string, period:number){

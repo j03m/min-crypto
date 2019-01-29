@@ -46,9 +46,9 @@ namedConfigs.set("min-profit", {
 
 
 namedConfigs.set("period-slope", {
-    long: 96,
-    med: 96/2,
-    short: 96/4
+    long: 192,
+    med: 192/4,
+    short: 192/8
 });
 
 
@@ -67,7 +67,7 @@ const config:Config = {
     //seconds in 15 min * milliseconds * num bars to wait
     "waitToTrade": 900 * 1000 * 1,
     "orderSize": 0.25,
-    "stopPercent": 3,
+    "stopPercent": 8,
     "tether": "USD",
     "barProperty": "close",
     "tick": 0,
