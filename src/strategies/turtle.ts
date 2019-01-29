@@ -60,6 +60,13 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     }
 
     const slopes = periodSlope[periodSlope.length -1];
+
+    //trend is still too strong, don't consider a sale.
+    if (slopes.long > .7){
+        return false;
+    }
+
+
     const lastCandle = candles[candles.length -1];
     //only sell strong trends, otherwise defer to stop loss
     let sellFlag:boolean = slopeLookBack(periodSlope, 5);
@@ -72,7 +79,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
 
 function slopeLookBack(periodSlopes:Array<Threshold>, lookBack:number){
     return periodSlopes.slice(lookBack * -1).reduce((acc, slopes):boolean =>{
-        return acc && slopes.long > .4 && slopes.short <=0;
+        return acc && slopes.med <=0  && slopes.short <=0;
     }, true);
 }
 
