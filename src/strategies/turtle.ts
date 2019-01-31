@@ -37,8 +37,7 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
     const slopes:Threshold = periodSlope[periodSlope.length -1];
    // buyFlag = buyFlag && new BigNumber(candles[candles.length -1].high).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
 
-    buyFlag = buyFlag && slopes.long > 0 && slopes.med > .2 && slopes.short > .2;
-    buyFlag = buyFlag && allGreater(periodSlope, 15, "long", 0);
+    buyFlag = buyFlag && slopes.long > 0 && slopes.med > .1 && slopes.short > .1;
     console.log(`j03m BUY: ${buyFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
     return buyFlag
 }
