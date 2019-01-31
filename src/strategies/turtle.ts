@@ -37,8 +37,9 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
     const slopes:Threshold = periodSlope[periodSlope.length -1];
    // buyFlag = buyFlag && new BigNumber(candles[candles.length -1].high).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
 
-    buyFlag = buyFlag && slopes.med > .2 && slopes.short > .2;
-    console.log(`j03m SELL: ${buyFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
+    buyFlag = buyFlag && slopes.long > 0 && slopes.med > .2 && slopes.short > .2;
+    buyFlag = buyFlag && allGreater(periodSlope, 15, "long", 0);
+    console.log(`j03m BUY: ${buyFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
     return buyFlag
 }
 
@@ -64,27 +65,42 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
 
     const slopes = periodSlope[periodSlope.length -1];
 
-    //trend is still too strong, don't consider a sale.
-    if (slopes.long >= .5){
-        return false;
-    }
-
-
     const lastCandle = candles[candles.length -1];
     const high = highs[highs.length -1];
     const low = lows[lows.length -1];
     //only sell strong trends, otherwise defer to stop loss
-    let sellFlag:boolean = slopeLookBack(periodSlope, 5) && lows[lows.length -1].long === 1;
+    let sellFlag:boolean = lookBack(periodSlope,84, "short", 0, false);
+    sellFlag = sellFlag || lookBack(periodSlope,10, "med", 0, false);
+
+    //todo: wtf is going on here, why we sell at 12:45 makes no sense
+    if (!lookBack(lows, 24, "med", 0, true)){
+        sellFlag = sellFlag && !lookBack(highs, 84, "long", 0, true);
+    }
+
 
     console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
 
+    if (sellFlag){
+        debugger;
+    }
 
     return sellFlag;
 }
 
-function slopeLookBack(periodSlopes:Array<Threshold>, lookBack:number){
+function lookBack(periodSlopes:Array<Threshold>, lookBack:number, property:string, value:number, any:true){
     return periodSlopes.slice(lookBack * -1).reduce((acc, slopes):boolean =>{
-        return acc && slopes.short <=0;
+        if (any){
+            return acc || slopes[property] > value;
+        }
+        else {
+            return acc && slopes[property] < value;
+        }
+    }, any ? false : true);
+}
+
+function allGreater(periodSlopes:Array<Threshold>, lookBack:number, property:string, value:number){
+    return periodSlopes.slice(lookBack * -1).reduce((acc, slopes):boolean =>{
+        return acc && slopes[property] > value;
     }, true);
 }
 
@@ -96,8 +112,10 @@ function hasIndicatorForPeriod(indicators:Array<Threshold>, property:string, per
 
 function orderPlaced(order:Order, indicators:Map<string, Array<any>>, candles:Array<Candle>){
     if (order.side === "BUY"){
+        console.log("j03m BOUGHT");
         lastOrder = order;
     }else {
+        console.log("j03m SOLD");
         lastOrder = undefined;
     }
 
