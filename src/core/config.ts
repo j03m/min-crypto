@@ -27,8 +27,15 @@ export interface Config {
 };
 
 
+//todo: use a single object for the same configs, freeze it
 const namedConfigs = new Map<string, any>();
 namedConfigs.set("new-high", {
+    long: 96,
+    med: 96/2,
+    short: 96/4
+});
+
+namedConfigs.set("volume-sum", {
     long: 96,
     med: 96/2,
     short: 96/4
@@ -76,7 +83,7 @@ const config:Config = {
     "brief":false,
     "strategies":[[ "turtle"]],
     "indicators":[
-        "quad-band", "new-high", "psar", "new-low", "directional", "period-slope"
+        "quad-band", "new-high", "psar", "new-low", "directional", "period-slope", "volume-sum"
     ],
     namedConfigs: namedConfigs
 };

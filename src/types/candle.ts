@@ -6,5 +6,5 @@ export default interface Candle {
     high: string,
     low: string,
     close: string,
-    volume: string
+    baseassetvolume: string
 };
