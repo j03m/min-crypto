@@ -36,9 +36,9 @@ namedConfigs.set("new-high", {
 });
 
 namedConfigs.set("volume-sum", {
-    long: 96,
-    med: 96/2,
-    short: 96/4
+    long: 96* 10,
+    med: 96,
+    short: 96/2
 });
 
 namedConfigs.set("new-low", {
@@ -53,7 +53,7 @@ namedConfigs.set("min-profit", {
 
 
 namedConfigs.set("period-slope", {
-    long: 96*2, //2 days
+    long: 96*10, //2 days
     med: 96, //1 day
     short: 96/4 //1/4 day
 });
@@ -67,7 +67,7 @@ namedConfigs.set("directional", {
 const config:Config = {
     "currency": "USD",
     "asset": "ETH",
-    "backFill": 96*4,
+    "backFill": 96*10,
     "maxBars": 500,
     "tickLen": 1,
     "barLen": 15,
@@ -81,9 +81,9 @@ const config:Config = {
     "buySellStategy": BuySellStrategy.allInAllOut,
     "decimalPlaces": 5,
     "brief":false,
-    "strategies":[[ "turtle"]],
+    "strategies":[[ "indicator-data-log"]],
     "indicators":[
-        "quad-band", "new-high", "psar", "new-low", "directional", "period-slope", "volume-sum"
+        "quad-band", "quad-band-diff", "new-high", "psar", "new-low", "directional", "period-slope", "volume-sum"
     ],
     namedConfigs: namedConfigs
 };

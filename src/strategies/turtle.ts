@@ -27,18 +27,21 @@ function shouldBuy(indicators:Map<string, Array<any>>, candles:Array<Candle>):bo
     const quadBand:Array<QuadBand> | undefined = indicators.get("quad-band");
     const lows:Array<Threshold> | undefined = indicators.get("new-low");
     const periodSlope:Array<Threshold>| undefined = indicators.get("period-slope");
-    if (quadBand === undefined || highs === undefined || periodSlope === undefined){
+    const volumeSums = indicators.get("volume-sum");
+
+    if (quadBand === undefined || highs === undefined || periodSlope === undefined || volumeSums === undefined || lows === undefined){
         throw new Error("missing indicators")
     }
     const lastCandle = candles[candles.length -1];
     let buyFlag = highs[highs.length - 1].long === 1;
     const high = highs[highs.length - 1];
     const low = lows[lows.length - 1];
+    const volumeSum = volumeSums[volumeSums.length - 1];
     const slopes:Threshold = periodSlope[periodSlope.length -1];
    // buyFlag = buyFlag && new BigNumber(candles[candles.length -1].high).isLessThanOrEqualTo(quadBand[quadBand.length -1].high);
 
     buyFlag = buyFlag && slopes.long > 0 && slopes.med > .1 && slopes.short > .1;
-    console.log(`j03m BUY: ${buyFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
+    console.log(`j03m BUY: ${buyFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short} VL: ${volumeSum.long} VM: ${volumeSum.med} VS: ${volumeSum.short}`);
     return buyFlag
 }
 
@@ -46,6 +49,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     const highs:Array<Threshold> | undefined = indicators.get("new-high");
     const lows:Array<Threshold> | undefined = indicators.get("new-low");
     const periodSlope = indicators.get("period-slope");
+    const volumeSums = indicators.get("volume-sum");
     if (highs === undefined){
         throw new Error("Requires the new-high indicator");
     }
@@ -58,6 +62,10 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
         throw new Error("requires directional")
     }
 
+    if (volumeSums === undefined){
+        throw new Error("requires volume sum")
+    }
+
     if (lastOrder === undefined){
         return false;
     }
@@ -67,6 +75,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     const lastCandle = candles[candles.length -1];
     const high = highs[highs.length -1];
     const low = lows[lows.length -1];
+    const volumeSum = volumeSums[volumeSums.length - 1];
     //only sell strong trends, otherwise defer to stop loss
     let sellFlag:boolean = lookBack(periodSlope,84, "short", 0, false);
     sellFlag = sellFlag || lookBack(periodSlope,10, "med", 0, false);
@@ -77,7 +86,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     }
 
 
-    console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short}`);
+    console.log(`j03m SELL: ${sellFlag} @ ${lastCandle.opentime}: SL: ${slopes.long}, SM: ${slopes.med}, SS: ${slopes.short} HL: ${high.long} HM: ${high.med} HS: ${high.short} LL: ${low.long} LM: ${high.med} LS: ${high.short} VL: ${volumeSum.long} VM: ${volumeSum.med} VS: ${volumeSum.short}`);
 
     if (sellFlag){
         debugger;
@@ -86,7 +95,7 @@ function shouldSell(indicators:Map<string, Array<any>>, candles:Array<Candle>):b
     return sellFlag;
 }
 
-function lookBack(periodSlopes:Array<Threshold>, lookBack:number, property:string, value:number, any:true){
+function lookBack(periodSlopes:Array<Threshold>, lookBack:number, property:string, value:number, any:boolean){
     return periodSlopes.slice(lookBack * -1).reduce((acc, slopes):boolean =>{
         if (any){
             return acc || slopes[property] > value;
