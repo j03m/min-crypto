@@ -1,8 +1,10 @@
-
-import * as tf from "@tensorflow/tfjs";
+const tf = require('@tensorflow/tfjs-node');
 //const csvUrl = "file://./ai/training-feb-1-90d/boston-housing-train.csv";
-const csvUrl = "file://./ai/training-feb-1-90d/data.csv";
+const dir = "ai/training-feb1-180d";
+const csvUrl = `file://./${dir}/data.csv`;
+const modelUrl = `file://./${dir}/model`;
 
+let model;
 async function run() {
     // We want to predict the column "medv", which represents a median value of
     // a home (in $1000s), so we mark it as a label.
@@ -32,7 +34,7 @@ async function run() {
             .batch(10);
 
     // Define the model.
-    const model = tf.sequential();
+    model = tf.sequential();
     model.add(tf.layers.dense({
         inputShape: [numOfFeatures],
         units: 1
@@ -53,6 +55,7 @@ async function run() {
     });
 }
 
-run().then((model)=>{
-    return model.save("file://./ai/training-feb-1-90d/model.json");
+run().then((history)=>{
+    console.log(history);
+    return model.save(modelUrl);
 });

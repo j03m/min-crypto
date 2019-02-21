@@ -54,3 +54,6 @@ and run multiple CLIs
 WE need to implement fees and figure out the right way to use MKT vs LMT. LMTs won't fill and we'll have to have logic about entry points being fulfilled which will be harder to backtest. 
 
 MKTS have fees but will fill faster and won't neccessarily be our computed entry points so our back tests could be more inaccurate.
+
+
+- Next run the next 180 days as test. July onward 

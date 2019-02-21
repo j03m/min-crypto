@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@tensorflow/tfjs": "^1.0.0-alpha1",
+    "@tensorflow/tfjs-node": "^0.3.0",
     "axios": "^0.18.0",
     "bignumber.js": "^7.2.1",
     "binance-api-node": "^0.8.5",
