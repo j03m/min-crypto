@@ -11,11 +11,13 @@
   "dependencies": {
     "@tensorflow/tfjs": "^1.0.0-alpha1",
     "@tensorflow/tfjs-node": "^0.3.0",
+    "@types/mathjs": "^5.0.1",
     "axios": "^0.18.0",
     "bignumber.js": "^7.2.1",
     "binance-api-node": "^0.8.5",
     "clui": "^0.3.6",
     "gdax": "^0.8.0",
+    "mathjs": "^5.8.0",
     "mobx": "^5.5.0",
     "moment": "^2.22.2",
     "pg": "^7.5.0",
