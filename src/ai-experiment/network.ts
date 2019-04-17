@@ -1,5 +1,8 @@
 const mth = require("mathjs");
 
+export interface ActivationFunction {
+    (input:number):number
+}
 
 export function sigmoid(x:number):number {
    return 1 / (1 + Math.exp(-x))
@@ -9,88 +12,84 @@ export function randomClamped () {
     return Math.random() * 2 - 1;
 }
 
-export function feedForward(inputs:Array<number>, weights:Array<number>){
+export function feedForward(inputs:Array<number>, weights:Array<number>, activation:ActivationFunction){
     try{
         const total =  mth.multiply(inputs, weights);
-        return sigmoid(total);
+        //todo replace with hashmap of activations functions
+        return activation(total);
     }
     catch(ex){
         console.log(ex);
         throw ex;
     }
-
 }
 
+export function feedForwardNeuron(neuron:Neuron, inputs:Array<number>, activation:ActivationFunction){
+    return feedForward(neuron.weights, inputs, activation);
+}
+
+export function feedForwardLayer(layer:Layer, inputs:Array<number>, activation:ActivationFunction){
+        return layer.neurons.map((neuron) =>{
+            return feedForwardNeuron(neuron, inputs, activation);
+        });
+}
+
+export function feedForwardNetwork(network:Network, inputs:Array<number>, activeation:ActivationFunction){
+    let currentInputs = inputs;
+    return network.layers.map((layer)=>{
+        currentInputs = feedForwardLayer(layer, currentInputs, activeation);
+        return currentInputs;
+    }).pop();
+}
 
 export class Neuron {
-    private weights:Array<number>;
-    populate(numberOfWeights:number){
-        this.weights = [];
+    private _weights:Array<number>;
+    constructor(numberOfWeights:number){
+        this._weights = [];
         for(let i = 0; i< numberOfWeights; i++){
-            this.weights.push(randomClamped());
+            this._weights.push(randomClamped());
         }
     }
-
-    compute(inputs:Array<number>){
-        return feedForward(inputs, this.weights);
+    public get weights() {
+        return this._weights;
     }
 }
 
 export class Layer {
-    private index:number;
-    private neurons:Array<Neuron>;
-    constructor(index:number){
-        this.index = index || 0;
-    }
-
-    populate(numNeurons:number, numInputs:number) {
-        this.neurons = [];
+    private _index:number;
+    private _neurons:Array<Neuron>;
+    constructor(index:number, numNeurons:number, weights:number) {
+        this._neurons = [];
+        this._index = index;
         for (let i = 0; i < numNeurons; i++) {
-            const neuron = new Neuron();
-            neuron.populate(numInputs);
-            this.neurons.push(neuron);
+            const neuron:Neuron = new Neuron(weights);
+            this._neurons.push(neuron);
         }
     }
-
-    compute(input:Array<number>):Array<number>{
-        return this.neurons.map((neuron) => {
-            return neuron.compute(input);
-        });
+    get neurons(){
+        return this._neurons;
+    }
+    get index(){
+        return this._index;
     }
 };
 
-export default class Network {
-    private layer:Layer; //todo implement as an array
-    private output:Neuron;
+export interface LayerSpec {
+    neurons: number,
+    weightPerNeuron: number
+}
 
 
-    /**
-     * Generate the initial network
-     * todo: params should allow for arbitrary inputs and neurons
-     */
-    generate(){
-        this.layer = new Layer(1);
-        //2 inputs
-        //2 hidden
-        //1 output
-        this.layer.populate(2, 2);
-        this.output = new Neuron();
-        this.output.populate(2);
+export class Network {
+    private _layers:Array<Layer>;
+    constructor(layerSpecs:Array<LayerSpec>){
+        this._layers = layerSpecs.reduce((layers:Array<Layer>, layerSpec:LayerSpec, index:number):Array<Layer> => {
+            layers.push(new Layer(index, layerSpec.neurons, layerSpec.weightPerNeuron));
+            return layers;
+        }, []);
     }
 
-
-    /**
-     * Train the network - training basically means adjusting weights to minimize loss
-     */
-    train(){
-
+    get layers(){
+        return this._layers;
     }
-
-    /**
-     * Use the pre trained weights and biases to make a prediction
-     */
-    compute(input:Array<number>){
-        return this.output.compute(this.layer.compute(input));
-    }
-
 }

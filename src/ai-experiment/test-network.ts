@@ -1,10 +1,10 @@
-// import Network from "./network";
-//
-// const network = new Network();
-// network.generate();
-// console.log("I think: ", network.compute([-2,-1]));
+import {Network, feedForwardNetwork, sigmoid} from "./network";
+
+const network = new Network([
+    { neurons: 2, weightPerNeuron: 2},
+    { neurons: 1, weightPerNeuron: 2}
+]);
+
+console.log("I think: ", feedForwardNetwork(network, [-2, -1], sigmoid))
 
 
-const mth = require("mathjs");
-
-console.log(mth.derivative('f(x) = x^2 + x', 'x'))
